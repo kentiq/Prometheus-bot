@@ -1,0 +1,12 @@
+{
+  "codexs": {
+    "title": "📚 Codexs — Changelog & Meta Documentation",
+    "description": "Welcome to **Codexs**!\nThis channel is connected to our Sanity API and is used to announce all changes, evolutions, and important documentation of the ecosystem.\n\nEach announcement here is synchronized with the Codexs website to keep everyone up to date.\n\n🔗 [View Codexs online](https://codexs.kentiq.tech)",
+    "color": "#6a5acd"
+  },
+  "announcements": {
+    "title": "📢 Official Announcements",
+    "description": "All important announcements of the Prometheus ecosystem are published here.",
+    "color": "#00bcd4"
+  }
+} 

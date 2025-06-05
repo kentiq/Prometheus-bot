@@ -28,7 +28,16 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('channel')
-    .setDescription('Présente ce channel et son utilité dans l\'écosystème.')
+    .setDescription('Present a channel of the ecosystem.')
+    .addStringOption(option =>
+      option.setName('name')
+        .setDescription('Channel to present')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Codexs', value: 'codexs' },
+          { name: 'Announcements', value: 'announcements' }
+        )
+    )
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);

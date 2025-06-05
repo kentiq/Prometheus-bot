@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const assets  = JSON.parse(fs.readFileSync('assets.json'));
 const collabs = JSON.parse(fs.readFileSync('workwith.json'));
+const channels = JSON.parse(fs.readFileSync('channels.json'));
 
 const client = new Client({ 
   intents: [
@@ -167,30 +168,21 @@ client.on('interactionCreate', async interaction => {
 
   // --- /channel ---
   if (interaction.commandName === 'channel') {
-    let embed;
-    if (interaction.channel.name === "codexs") {
-      embed = new EmbedBuilder()
-        .setTitle("📚 Codexs — Changelog & Méta Documentation")
-        .setDescription(
-          "Bienvenue sur **Codexs** !\n" +
-          "Ce channel est connecté à notre API Sanity et sert à annoncer tous les changements, évolutions et documentations importantes de l'écosystème.\n\n" +
-          "Chaque annonce ici est synchronisée avec le site Codexs pour garder tout le monde à jour.\n\n" +
-          "🔗 [Voir le Codex en ligne](https://codexs.tonsite.com)"
-        )
-        .setColor(0x6a5acd)
-        .setFooter({ text: "Prometheus • Channel meta presentation" })
-        .setTimestamp();
-    } else {
-      embed = new EmbedBuilder()
-        .setTitle(`📢 ${interaction.channel.name}`)
-        .setDescription(
-          "Ce channel fait partie de l'écosystème Prometheus.\n" +
-          "Utilise `/channel` pour présenter ce channel à tes membres !"
-        )
-        .setColor(0x00bcd4)
-        .setFooter({ text: "Prometheus • Channel meta presentation" })
-        .setTimestamp();
+    const channelKey = interaction.options.getString('name');
+    const channelData = channels[channelKey];
+
+    if (!channelData) {
+      await interaction.reply({ content: "❌ Channel not found in the database.", ephemeral: true });
+      return;
     }
+
+    const embed = new EmbedBuilder()
+      .setTitle(channelData.title)
+      .setDescription(channelData.description)
+      .setColor(channelData.color || 0x00bcd4)
+      .setFooter({ text: "Prometheus • Channel meta presentation" })
+      .setTimestamp();
+
     await interaction.reply({ embeds: [embed] });
   }
 });
