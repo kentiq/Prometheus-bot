@@ -6,43 +6,16 @@ require('dotenv').config();
 const assets  = JSON.parse(fs.readFileSync('assets.json'));
 const collabs = JSON.parse(fs.readFileSync('workwith.json'));
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] }); // Ajout de GatewayIntentBits.GuildMembers
+const client = new Client({ 
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
-client.once('ready', async () => { // Rendre la fonction ready asynchrone
+client.once('ready', () => {
   console.log(`🧠 PROMETHEUS active and ready to transmit digital artifacts.`);
-
-  // Récupérer les membres de tous les serveurs où le bot est présent
-  try {
-    console.log('Fetching members from guilds...');
-    const guilds = client.guilds.cache;
-    let allMembersData = [];
-
-    for (const guild of guilds.values()) {
-      // S'assurer que le bot peut accéder aux membres du serveur
-      // Parfois, il faut explicitement fetch le guild pour avoir toutes les infos à jour
-      const fullGuild = await client.guilds.fetch(guild.id);
-      const members = await fullGuild.members.fetch(); // Récupère tous les membres du serveur
-
-      members.forEach(member => {
-        allMembersData.push({
-          id: member.id, // ID de l'utilisateur Discord
-          username: member.user.username,
-          discriminator: member.user.discriminator, // Le #xxxx après le nom d'utilisateur
-          displayName: member.displayName, // Surnom sur le serveur
-          avatarURL: member.user.displayAvatarURL(), // URL de l'avatar
-          roles: member.roles.cache.map(role => ({ id: role.id, name: role.name, color: role.hexColor })),
-          joinedTimestamp: member.joinedTimestamp, // Quand l'utilisateur a rejoint le serveur
-          bot: member.user.bot // Si c'est un bot
-        });
-      });
-    }
-
-    fs.writeFileSync('players.json', JSON.stringify(allMembersData, null, 2), 'utf8');
-    console.log(`Successfully wrote ${allMembersData.length} members to players.json`);
-
-  } catch (error) {
-    console.error('Error fetching members or writing to players.json:', error);
-  }
 });
 
 client.on('interactionCreate', async interaction => {
