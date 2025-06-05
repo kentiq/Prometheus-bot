@@ -1,0 +1,20 @@
+{
+    "WORK_001": {
+      "name": "Grand Alfheim",
+      "description": "The cutting-edge MMORPG being developed on the Roblox platform. Inspired by the captivating world of Alfheim Online from the popular anime series Sword Art Online, our project is a labor of love and imagination.",
+      "contribution": "River System, Housing System, UX-UI Import, TeleportHouse, etc...",
+      "discord": "https://discord.gg/JJPx7dzdHz",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    },
+    "WORK_002": {
+      "name": "Moonsire",
+      "description": "Dive into Moonsire, a dark fantasy RPG inspired by titans like Elden Ring and Dark Souls. Experience a single-player and multiplayer adventure with intense boss fights and action-focused gameplay where your choices truly matter.",
+      "contribution": "Full DataStoring System (health, armor, inventory, location), GUI with multi-slot save system & GamePass integration, Robust inventory system with per-slot data, Permanent Death system with data wipe consequences",
+      "discord": "https://discord.gg/WsEXf2QCTA",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    }
+  }
