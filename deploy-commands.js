@@ -24,7 +24,11 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('identity')
-    .setDescription('Displays Prometheus identity and purpose')
+    .setDescription('Displays Prometheus identity and purpose'),
+
+  new SlashCommandBuilder()
+    .setName('channel')
+    .setDescription('Présente ce channel et son utilité dans l\'écosystème.')
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
