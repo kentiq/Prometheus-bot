@@ -1,0 +1,15 @@
+{
+  "ilyes": {
+    "name": "Ilyes",
+    "role": "Developer & Architect",
+    "image": "https://imgur.com/a/XM0UsRi",
+    "color": "#6a5acd",
+    "presentation_markdown": "> **KENTIQ // TECHNICAL PROFILE**\n\n**Position:** Developer & Architect\n**Status:** Available\n\n---\n\n### 💡 Key Skills\n\n- **Luau** → Developing modular architectures and complex systems.\n- **UX/UI** → Designing interactive interfaces, feedback systems, transitions.\n- **VFX** → Creating visual effects for games and UI (polish, feedback, motion).\n- **Animation** → Scripting movements, sprite animation, synchronization.\n- **3D Modeling** → Asset pipelines, rigs, 3D integration.\n- **Graphics** → Icons, branding, design systems.\n- **SFX** → Sound design for UI, systems, impacts.\n\n---\n\n### 🌐 Languages Spoken\n\n🇫🇷 French — Native\n🇩🇿 Arabic — Native\n🇬🇧 English — Operational (B1–B2)\n🇮🇹 Italian — Basic (A1–A2)\n\n---\n\n### 🛠️ Noteworthy Projects\n\n- **Kentiq UI Effects** — Modular UI Feedback Framework.\n- **Argus** — Anti-cheat and moderation system (Minecraft).\n- **Codexs** — Changelog management system.\n\n---\n\n### 💭 Philosophy\n> *\"The best way to predict the future is to invent it.\"*\n> — Alan Kay",
+    "links": {
+      "Portfolio": "https://kentiq.tech",
+      "Codexs": "https://codexs.kentiq.tech",
+      "GitHub": "https://github.com/kentiq?tab=repositories",
+      "LinkedIn": "https://www.linkedin.com/in/ilyes-amroune-2a2a38249/"
+    }
+  }
+}

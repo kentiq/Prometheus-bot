@@ -8,5 +8,10 @@
     "title": "📢 Official Announcements",
     "description": "All important announcements of the Prometheus ecosystem are published here.",
     "color": "#00bcd4"
+  },
+  "devforum": {
+    "title": "📣 DevForum — Public Posts Archive",
+    "description": "Welcome to the **DevForum** channel!\nHere you'll find a structured archive of all official posts made by Kentiq on the Roblox Developer Forum.\n\nEach post reflects a contribution to the community — from groundbreaking systems to open-source assets and creative insights. These are the echoes of the Kentiq initiative across the public sphere.\n\n🔗 [View DevForum Profile](https://devforum.roblox.com/u/kentiq/summary)",
+    "color": "#ff9800"
   }
-} 
+}

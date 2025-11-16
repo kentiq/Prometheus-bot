@@ -1,0 +1,47 @@
+{
+    "WORK_001": {
+      "name": "Grand Alfheim",
+      "description": "The cutting-edge MMORPG being developed on the Roblox platform. Inspired by the captivating world of Alfheim Online from the popular anime series Sword Art Online, our project is a labor of love and imagination.",
+      "contribution": "River System, Housing System, UX-UI Import, TeleportHouse, etc...",
+      "discord": "https://discord.gg/JJPx7dzdHz",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    },
+    "WORK_002": {
+      "name": "Moonsire",
+      "description": "Dive into Moonsire, a dark fantasy RPG inspired by titans like Elden Ring and Dark Souls. Experience a single-player and multiplayer adventure with intense boss fights and action-focused gameplay where your choices truly matter.",
+      "contribution": "Full DataStoring System (health, armor, inventory, location), GUI with multi-slot save system & GamePass integration, Robust inventory system with per-slot data, Permanent Death system with data wipe consequences",
+      "discord": "https://discord.gg/WsEXf2QCTA",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    },
+    "WORK_003": {
+      "name": "Studio Sortilège",
+      "description": "Our mission is to push the boundaries of fear on Roblox. Every environment, every sound, every shadow is carefully crafted to immerse you in unsettling worlds where every choice could be your last.\nEmbody characters haunted by their past, and uncover secrets that were never meant to be found.",
+      "contribution": "• Minigame\n• Death screen\n• Revive system (Developer product)\n• Weeping Angel system\n• Cursed Painting system",
+      "discord": "https://discord.gg/Fx9KFt2v7m",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "fr"
+    },
+    "WORK_004": {
+      "name": "Ozqob Studios",
+      "description": "Roblox One Piece game named World Piece.",
+      "contribution": "Confidential contribution until game release.",
+      "discord": "https://discord.gg/sAsMZe8f4f",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    },
+    "WORK_005": {
+      "name": "Murim",
+      "description": "A cultivation-based Roblox game focused on progression, competitive PvP, and adventure.",
+      "contribution": "Confidential contribution until game release.",
+      "discord": "https://discord.gg/AvAmdPZ5",
+      "preview": "attachment",
+      "video": "attachment",
+      "language": "en"
+    }
+  }

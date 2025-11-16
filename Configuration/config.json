@@ -1,0 +1,15 @@
+{
+  "channels": {
+    "setupTickets": "1386352662563393578",
+    "commsStatus": "1386358062763348061"
+  },
+  "rateLimit": {
+    "window": 60000,
+    "max": 10
+  },
+  "bot": {
+    "version": "1.1.0",
+    "name": "Prometheus"
+  }
+}
+

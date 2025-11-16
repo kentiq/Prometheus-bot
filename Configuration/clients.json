@@ -1,0 +1,27 @@
+{
+    "CLIENT_001": {
+      "name": "MNK",
+      "role": "Lead Dev @ Studio Sortilège",
+      "tasks": "Minigame, Death screen, Revive system (Developer product), Weeping Angel system, Cursed Painting system",
+      "proof": "attachment",
+      "color": "#3498db",
+      "quote": "I had the pleasure of working with Kentiq on my horror game project, and he was an outstanding team member from start to finish. Not only is he a highly skilled developer with excellent problem-solving abilities, but he's also incredibly friendly and easy to work with. His clear communication and collaborative mindset made the development process smooth and enjoyable. Kentiq brought both technical expertise and positive energy to the team, and I would gladly work with him again. I highly recommend him for any game development role."
+    },
+    "CLIENT_002": {
+      "name": "kßh",
+      "role": "CEO of Krish Entertainment",
+      "tasks": "Rework of the procedural real-time loop system, Provided expertise on an upcoming game",
+      "proof": "attachment",
+      "color": "#e74c3c",
+      "quote": "Kentiq is an amazing person that understands the clients needs and adapts his ideas to the ideals of the demands of people and is even capable of giving advice on the implementation of certain features, he does all of this while maintaining an incredibly fast delivery time and keeping in contact with the team to show us his progress. He is overall the best developper my team has ever had and i would recommend him to anyone looking for a competant scripter"
+    },
+    "CLIENT_003": {
+      "name": "Frozee/Artah",
+      "role": "CEO @ Studio Sortilège",
+      "tasks": "Expert optimization, Debugging of existing architectures, Structural improvements across multiple systems",
+      "proof": "attachment",
+      "color": "#9b59b6",
+      "quote": "Working with Kentiq has been nothing short of exceptional. From day one, they demonstrated not only deep technical expertise but also an impressive ability to understand and adapt to the project's needs. Their code is clean, scalable, and well-documented showcasing both precision and foresight.\n\nWhat truly sets Kentiq apart is their reliability and dedication. Deadlines are always met (often ahead of time), and their proactive communication ensures that no detail goes overlooked. Even when challenges arise, Kentiq approaches problems with a solutions-first mindset and a calm, professional attitude that inspires confidence in the entire team.\n\nOn top of that, they bring creativity to the table, suggesting enhancements and optimizations that consistently improve the final product. Whether it’s back-end architecture, front-end polish, or overall UX, Kentiq delivers top-tier results.\n\nIn short: Kentiq is a rare talent — technically sharp, highly dependable, and genuinely passionate about building great software. I wouldn’t hesitate a second to work with them again or recommend them to anyone seeking excellence in development."
+    }
+  }
+  
