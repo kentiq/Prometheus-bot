@@ -111,6 +111,16 @@ const commands = [
     ),
 
   new SlashCommandBuilder()
+    .setName('setup-welcome')
+    .setDescription('Sets up the welcome embed with automatic commission status updates.')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addStringOption(option =>
+      option.setName('channel')
+        .setDescription('Channel ID or mention where the welcome embed will be posted.')
+        .setRequired(true)
+    ),
+
+  new SlashCommandBuilder()
     .setName('setup-tickets')
     .setDescription('Sets up the ticket system and sends the control panel.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)

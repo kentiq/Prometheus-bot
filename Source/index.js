@@ -1,5 +1,5 @@
 // ✅ index.js — English-only public presentation with collab & warning system
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient } = require('discord.js');
 const fs = require('fs');
 const discordTranscripts = require('discord-html-transcripts');
 require('dotenv').config();
@@ -97,11 +97,184 @@ const client = new Client({
   ]
 });
 
-client.once('ready', () => {
+/**
+ * Détecte le statut actuel des commissions en lisant le nom du canal
+ * @returns {Promise<string>} 'open' ou 'closed'
+ */
+async function getCommsStatus() {
+  try {
+    const channelId = config.channels?.commsStatus;
+    if (!channelId) return 'closed';
+    
+    const channel = await client.channels.fetch(channelId);
+    if (!channel) return 'closed';
+    
+    const channelName = channel.name.toLowerCase();
+    return channelName.includes('open') ? 'open' : 'closed';
+  } catch (error) {
+    console.error('[ERROR] Error getting comms status:', error);
+    return 'closed';
+  }
+}
+
+/**
+ * Génère les embeds Welcome avec le statut des commissions dynamique
+ * @param {string} commsStatus - 'open' ou 'closed'
+ * @returns {EmbedBuilder[]}
+ */
+function createWelcomeEmbed(commsStatus) {
+  const isOpen = commsStatus === 'open';
+  const statusEmoji = isOpen ? '🟢' : '🔴';
+  const statusText = isOpen ? 'Open' : 'Closed';
+  
+  const welcomeEmbed = new EmbedBuilder()
+    .setAuthor({
+      name: '〚✨〛 Welcome to Kentiq Universe'
+    })
+    .setTitle('Hello! Welcome to my digital workspace where I showcase my work, collaborate with teams, and share insights about Roblox development.')
+    .setColor(0x5865F2);
+  
+  const spacerEmbed1 = new EmbedBuilder()
+    .setDescription('\u200B')
+    .setColor(0x2f3136);
+  
+  const contentEmbed = new EmbedBuilder()
+    .addFields({
+      name: 'What you\'ll find here:',
+      value: '• 〚📦〛 Kentiq Area — Explore my latest projects and assets\n• 〚🤝〛 Work-with — See the teams I work with\n• 〚🎫〛 Tickets — Open a ticket for my development services',
+      inline: false
+    })
+    .setColor(0x5B6EE8);
+  
+  const spacerEmbed2 = new EmbedBuilder()
+    .setDescription('\u200B')
+    .setColor(0x2f3136);
+  
+  const quickLinksEmbed = new EmbedBuilder()
+    .addFields({
+      name: '〚🔗〛 Quick Links',
+      value: '> Portal: [kentiq.tech/portal](https://www.kentiq.tech/portal)\n> Portfolio: [kentiq.tech/portfolio](https://www.kentiq.tech/portfolio)\n> Services: [kentiq.tech/home](https://www.kentiq.tech/home)',
+      inline: false
+    })
+    .setColor(0x6077DE);
+  
+  const spacerEmbed3 = new EmbedBuilder()
+    .setDescription('\u200B')
+    .setColor(0x2f3136);
+  
+  const statusEmbed = new EmbedBuilder()
+    .addFields({
+      name: '〚💼〛 Commissions Status',
+      value: `〚${statusEmoji}〛 ${statusText}`,
+      inline: false
+    })
+    .setColor(isOpen ? 0x2ecc71 : 0xe74c3c)
+    .setFooter({
+      text: 'Kentiq Universe'
+    })
+    .setTimestamp();
+  
+  return [welcomeEmbed, spacerEmbed1, contentEmbed, spacerEmbed2, quickLinksEmbed, spacerEmbed3, statusEmbed];
+}
+
+/**
+ * Met à jour l'embed Welcome via webhook
+ * @param {string} commsStatus - 'open' ou 'closed'
+ */
+async function updateWelcomeEmbed(commsStatus) {
+  try {
+    const webhookConfig = config.webhooks?.welcome;
+    if (!webhookConfig?.id || !webhookConfig?.token) {
+      console.warn('[WARN] Welcome webhook not configured. Skipping update.');
+      return;
+    }
+
+    const webhook = new WebhookClient({ id: webhookConfig.id, token: webhookConfig.token });
+    const embeds = createWelcomeEmbed(commsStatus);
+    
+    // Utiliser l'ID du message stocké dans la config, ou chercher dans le canal
+    let messageId = webhookConfig.messageId;
+    
+    if (!messageId) {
+      // Si pas d'ID stocké, chercher dans le canal
+      const welcomeChannelId = config.channels?.welcome;
+      if (welcomeChannelId) {
+        try {
+          const channel = await client.channels.fetch(welcomeChannelId);
+          if (channel) {
+            // Chercher le message Welcome dans les 50 derniers messages
+            const messages = await channel.messages.fetch({ limit: 50 });
+            const welcomeMessage = messages.find(msg => 
+              msg.webhookId === webhookConfig.id &&
+              msg.embeds.length > 0 && 
+              msg.embeds[0].author?.name?.includes('Welcome')
+            );
+            
+            if (welcomeMessage) {
+              messageId = welcomeMessage.id;
+              // Sauvegarder l'ID pour la prochaine fois
+              const currentConfig = loadJSONFile('config.json');
+              if (!currentConfig.webhooks) currentConfig.webhooks = {};
+              if (!currentConfig.webhooks.welcome) currentConfig.webhooks.welcome = {};
+              currentConfig.webhooks.welcome.messageId = messageId;
+              fs.writeFileSync(
+                path.join(__dirname, '..', 'Configuration', 'config.json'),
+                JSON.stringify(currentConfig, null, 2)
+              );
+              Object.assign(config, currentConfig);
+            }
+          }
+        } catch (error) {
+          console.warn('[WARN] Could not search for welcome message in channel:', error.message);
+        }
+      }
+    }
+
+    if (messageId) {
+      // Mettre à jour le message existant
+      await webhook.editMessage(messageId, {
+        embeds: embeds,
+        username: 'Kentiq Universe',
+        avatarURL: client.user?.displayAvatarURL()
+      });
+    } else {
+      // Créer un nouveau message si aucun n'existe
+      const sentMessage = await webhook.send({
+        embeds: embeds,
+        username: 'Kentiq Universe',
+        avatarURL: client.user?.displayAvatarURL()
+      });
+      
+      // Sauvegarder l'ID du nouveau message
+      const currentConfig = loadJSONFile('config.json');
+      if (!currentConfig.webhooks) currentConfig.webhooks = {};
+      if (!currentConfig.webhooks.welcome) currentConfig.webhooks.welcome = {};
+      currentConfig.webhooks.welcome.messageId = sentMessage.id;
+      fs.writeFileSync(
+        path.join(__dirname, '..', 'Configuration', 'config.json'),
+        JSON.stringify(currentConfig, null, 2)
+      );
+      Object.assign(config, currentConfig);
+    }
+  } catch (error) {
+    console.error('[ERROR] Error updating welcome embed:', error);
+  }
+}
+
+client.once('ready', async () => {
   const botName = config.bot?.name || 'PROMETHEUS';
   console.log(`[${botName}] Bot active and ready to transmit digital artifacts.`);
   console.log(`[${botName}] Connected as: ${client.user.tag}`);
   console.log(`[${botName}] Serving ${client.guilds.cache.size} server(s)`);
+  
+  // Mettre à jour l'embed Welcome avec le statut actuel au démarrage
+  try {
+    const currentStatus = await getCommsStatus();
+    await updateWelcomeEmbed(currentStatus);
+    console.log(`[${botName}] Welcome embed updated with status: ${currentStatus}`);
+  } catch (error) {
+    console.warn(`[WARN] Could not update welcome embed on startup:`, error.message);
+  }
 });
 
 // Gestion de la reconnexion automatique
@@ -247,6 +420,93 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (!interaction.isChatInputCommand()) return;
+
+  // --- /setup-welcome ---
+  if (interaction.commandName === 'setup-welcome') {
+    if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
+    }
+
+    try {
+      await interaction.deferReply({ ephemeral: true });
+
+      const channelInput = interaction.options.getString('channel');
+      let webhookChannel;
+
+      // Essayer de parser comme ID ou mention
+      const channelIdMatch = channelInput.match(/(\d+)/);
+      if (channelIdMatch) {
+        const channelId = channelIdMatch[1];
+        try {
+          webhookChannel = await interaction.guild.channels.fetch(channelId);
+        } catch (error) {
+          return interaction.editReply({ content: `❌ Channel with ID \`${channelId}\` not found. Please check the channel ID.` });
+        }
+      } else {
+        return interaction.editReply({ content: '❌ Invalid channel format. Please provide a channel ID or mention.' });
+      }
+
+      if (!webhookChannel || (webhookChannel.type !== ChannelType.GuildText && webhookChannel.type !== ChannelType.GuildAnnouncement)) {
+        return interaction.editReply({ content: '❌ The specified channel must be a text or announcement channel.' });
+      }
+
+      // Créer ou récupérer le webhook
+      const webhooks = await webhookChannel.fetchWebhooks();
+      let webhook = webhooks.find(w => w.name === 'Kentiq Welcome');
+
+      if (!webhook) {
+        webhook = await webhookChannel.createWebhook({
+          name: 'Kentiq Welcome',
+          avatar: client.user?.displayAvatarURL()
+        });
+      }
+
+      // Sauvegarder les infos du webhook dans la config
+      const currentConfig = loadJSONFile('config.json');
+      if (!currentConfig.webhooks) currentConfig.webhooks = {};
+      if (!currentConfig.webhooks.welcome) currentConfig.webhooks.welcome = {};
+      
+      currentConfig.webhooks.welcome.id = webhook.id;
+      currentConfig.webhooks.welcome.token = webhook.token;
+      
+      if (!currentConfig.channels) currentConfig.channels = {};
+      currentConfig.channels.welcome = webhookChannel.id;
+
+      fs.writeFileSync(
+        path.join(__dirname, '..', 'Configuration', 'config.json'),
+        JSON.stringify(currentConfig, null, 2)
+      );
+
+      // Recharger la config
+      Object.assign(config, currentConfig);
+
+      // Obtenir le statut actuel et créer l'embed
+      const currentStatus = await getCommsStatus();
+      const embed = createWelcomeEmbed(currentStatus);
+
+      // Envoyer le message Welcome
+      const sentMessage = await webhook.send({
+        embeds: [embed],
+        username: 'Kentiq Universe',
+        avatarURL: client.user?.displayAvatarURL()
+      });
+
+      // Sauvegarder l'ID du message pour les mises à jour futures
+      currentConfig.webhooks.welcome.messageId = sentMessage.id;
+      fs.writeFileSync(
+        path.join(__dirname, '..', 'Configuration', 'config.json'),
+        JSON.stringify(currentConfig, null, 2)
+      );
+      Object.assign(config, currentConfig);
+
+      await interaction.editReply({
+        content: `✅ Welcome embed configured successfully in ${webhookChannel}! The embed will automatically update when you change the commissions status with \`/com\`.`
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /setup-welcome:', error);
+      await interaction.editReply({ content: '❌ An error occurred while setting up the welcome embed.' });
+    }
+  }
 
   // --- /setup-tickets ---
   if (interaction.commandName === 'setup-tickets') {
@@ -652,7 +912,10 @@ client.on('interactionCreate', async interaction => {
       
       await channel.setName(newName);
 
-      await interaction.editReply({ content: `Le nom du canal a été mis à jour sur : **${newName}**.` });
+      // Mettre à jour l'embed Welcome automatiquement
+      await updateWelcomeEmbed(status);
+
+      await interaction.editReply({ content: `Le nom du canal a été mis à jour sur : **${newName}**. L'embed Welcome a été mis à jour automatiquement.` });
 
     } catch (error) {
       console.error('[ERROR] Error in /com:', error);

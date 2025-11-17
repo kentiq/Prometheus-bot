@@ -1,7 +1,15 @@
 {
   "channels": {
     "setupTickets": "1386352662563393578",
-    "commsStatus": "1386358062763348061"
+    "commsStatus": "1386358062763348061",
+    "welcome": "1440007290915782757"
+  },
+  "webhooks": {
+    "welcome": {
+      "id": "1440009619731910777",
+      "token": "2FVdwKOmadYnmKDqtaq4beDiq8BG6iYYE7VqwV3az6ch1oBL3AAfOytdHF5JUFeRZC7A",
+      "messageId": "1440009621069758670"
+    }
   },
   "rateLimit": {
     "window": 60000,
@@ -12,4 +20,3 @@
     "name": "Prometheus"
   }
 }
-
