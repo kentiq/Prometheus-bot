@@ -93,7 +93,9 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers
   ]
 });
 
@@ -174,7 +176,15 @@ function createWelcomeEmbed(commsStatus) {
     })
     .setTimestamp();
   
-  return [welcomeEmbed, spacerEmbed1, contentEmbed, spacerEmbed2, quickLinksEmbed, spacerEmbed3, statusEmbed];
+  const spacerEmbed4 = new EmbedBuilder()
+    .setDescription('\u200B')
+    .setColor(0x2f3136);
+  
+  const confirmationEmbed = new EmbedBuilder()
+    .setDescription('Click the <a:Check:926902236691460126> reaction below to confirm you have read this message')
+    .setColor(0x5865F2);
+  
+  return [welcomeEmbed, spacerEmbed1, contentEmbed, spacerEmbed2, quickLinksEmbed, spacerEmbed3, statusEmbed, spacerEmbed4, confirmationEmbed];
 }
 
 /**
@@ -289,6 +299,124 @@ client.on('disconnect', () => {
 client.on('reconnecting', () => {
   console.log('[INFO] Reconnecting to Discord...');
 });
+
+// Message de bienvenue personnalisé pour les nouveaux membres
+// NOTE: Requires "SERVER MEMBERS INTENT" to be enabled in Discord Developer Portal
+// Go to: https://discord.com/developers/applications > Your Bot > Bot > Privileged Gateway Intents > Enable "SERVER MEMBERS INTENT"
+client.on('guildMemberAdd', async (member) => {
+  try {
+    // Ignorer les bots
+    if (member.user.bot) return;
+    
+    // Attendre un peu pour éviter les problèmes de cache
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Créer un embed de bienvenue personnalisé
+    const welcomeEmbed = new EmbedBuilder()
+      .setTitle('👋 Welcome to **Kentiq Universe**')
+      .setDescription('Here\'s everything you need to know to get started:')
+      .addFields(
+        {
+          name: '📜 Rules',
+          value: 'Read the server rules: <#1400056802128826448>',
+          inline: false
+        },
+        {
+          name: '💰 Payment Information',
+          value: 'Payment terms & billing info: <#1386358140462956624>',
+          inline: false
+        },
+        {
+          name: '📂 Skills & Expertise',
+          value: 'Discover my full skillset: <#1358465216806912060>',
+          inline: false
+        },
+        {
+          name: '🎫 Tickets',
+          value: 'For commissions or project requests, open a ticket in <#1386352662563393578>',
+          inline: false
+        },
+        {
+          name: '\u200B',
+          value: 'This server acts as my official workspace and portfolio hub.\n\nFeel free to explore, ask questions, or just look around.',
+          inline: false
+        }
+      )
+      .setColor(0x5865F2)
+      .setFooter({ text: 'Kentiq Universe • Welcome' })
+      .setTimestamp();
+    
+    // Envoyer le message en DM
+    try {
+      await member.send({ embeds: [welcomeEmbed] });
+    } catch (error) {
+      // Si les DMs sont désactivés, on ignore l'erreur silencieusement
+      console.warn(`[WARN] Could not send welcome DM to ${member.user.tag}: DMs may be disabled`);
+    }
+  } catch (error) {
+    console.error('[ERROR] Error in guildMemberAdd:', error);
+  }
+});
+
+// TEMPORARY: Test system to verify custom emoji detection - REMOVE ONCE CONFIRMED
+// TODO: Replace with role assignment system when custom emoji system is confirmed
+client.on('messageReactionAdd', async (reaction, user) => {
+  try {
+    // Ignore bot reactions
+    if (user.bot) return;
+    
+    // Fetch reaction if partial
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch (error) {
+        console.error('[ERROR] Error fetching reaction:', error);
+        return;
+      }
+    }
+    
+    // Fetch message if partial
+    if (reaction.message.partial) {
+      try {
+        await reaction.message.fetch();
+      } catch (error) {
+        console.error('[ERROR] Error fetching message:', error);
+        return;
+      }
+    }
+    
+    // Check if reaction is the custom Check emoji (ID: 926902236691460126)
+    const checkEmojiId = '926902236691460126';
+    const reactionEmojiId = reaction.emoji.id;
+    
+    if (reactionEmojiId !== checkEmojiId) return;
+    
+    // Check if message is the welcome message
+    const welcomeMessageId = config.webhooks?.welcome?.messageId;
+    if (!welcomeMessageId || reaction.message.id !== welcomeMessageId) return;
+    
+    // Send confirmation message to test channel
+    const testChannelId = '1358500023674998885';
+    const testChannel = await client.channels.fetch(testChannelId);
+    
+    if (testChannel) {
+      await testChannel.send(`✅ **Test Confirmation**: ${user.tag} (${user.id}) clicked on the :Check: reaction on the welcome message.`);
+    }
+  } catch (error) {
+    console.error('[ERROR] Error in reaction test handler:', error);
+  }
+});
+
+// TODO: Implement role assignment system when user reacts with :Check: to welcome message
+// When a user reacts with <a:Check:926902236691460126> to the welcome message, assign them a role to grant server access
+// Replace the temporary test system above with:
+// client.on('messageReactionAdd', async (reaction, user) => {
+//   // Check if reaction emoji ID matches '926902236691460126' (Check emoji)
+//   // Check if message ID matches config.webhooks.welcome.messageId
+//   // Check if user is not a bot
+//   // Assign role to user (role ID to be configured in config.json)
+//   // Example: await reaction.message.guild.members.cache.get(user.id).roles.add(roleId);
+// });
 
 // Gestion globale des erreurs non capturées (avec sanitization)
 process.on('unhandledRejection', (reason, promise) => {
@@ -1013,6 +1141,156 @@ client.on('interactionCreate', async interaction => {
   }
 
   // --- /stats ---
+  if (interaction.commandName === 'rules') {
+    try {
+      const rulesEmbed = new EmbedBuilder()
+        .setTitle('〚📜〛 Server Rules')
+        .setDescription('Please read and follow these rules to ensure a positive experience for everyone.')
+        .addFields(
+          {
+            name: '1. Respect',
+            value: 'Be respectful to all members. Harassment, discrimination, or hate speech will not be tolerated.',
+            inline: false
+          },
+          {
+            name: '2. No Spam',
+            value: 'Avoid spamming messages, emojis, or reactions. Keep conversations meaningful and on-topic.',
+            inline: false
+          },
+          {
+            name: '3. Appropriate Content',
+            value: 'Keep all content appropriate for all ages. NSFW content is strictly prohibited.',
+            inline: false
+          },
+          {
+            name: '4. No Self-Promotion',
+            value: 'Do not promote your own content, services, or servers without permission from staff.',
+            inline: false
+          },
+          {
+            name: '5. Follow Discord ToS',
+            value: 'All Discord Terms of Service and Community Guidelines apply here.',
+            inline: false
+          },
+          {
+            name: '6. Business Inquiries',
+            value: 'For business inquiries or project requests, you can use the ticket system or DM me directly. Tickets help me stay organized, but DMs are also welcome.',
+            inline: false
+          },
+          {
+            name: '7. Responsibility & Information',
+            value: 'By using this server, you acknowledge that you have read and understood the Rules, payment information (`/payment`), and skill descriptions. Failure to read these documents does not exempt you from their terms. All information provided in official channels (Rules, Pricing, Skills) is binding.',
+            inline: false
+          }
+        )
+        .setColor(0x5865F2)
+        .setFooter({ text: 'Kentiq Universe • Rules' })
+        .setTimestamp();
+
+      // Reply publicly (not ephemeral) so everyone can see it
+      await interaction.reply({ embeds: [rulesEmbed], ephemeral: false });
+    } catch (error) {
+      console.error('[ERROR] Error in /rules:', error);
+      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
+  if (interaction.commandName === 'payment') {
+    try {
+      const titleEmbed = new EmbedBuilder()
+        .setTitle('〚💰〛 Payment Information')
+        .setDescription('Official payment terms for all services and commissions.')
+        .setColor(0x5865F2);
+      
+      const spacerEmbed1 = new EmbedBuilder()
+        .setDescription('\u200B')
+        .setColor(0x2f3136);
+      
+      const paymentMethodsEmbed = new EmbedBuilder()
+        .addFields({
+          name: '〚💳〛 Accepted Payment Methods',
+          value: '• PayPal (Friends & Family — recommended)\n• Cryptocurrency\n• Robux (Only for amounts > 100,000 Robux)',
+          inline: false
+        })
+        .setColor(0x5865F2);
+      
+      const spacerEmbed2 = new EmbedBuilder()
+        .setDescription('\u200B')
+        .setColor(0x2f3136);
+      
+      const billingModesEmbed = new EmbedBuilder()
+        .addFields({
+          name: '〚🧠〛 Two Billing Modes Available',
+          value: '\u200B',
+          inline: false
+        })
+        .setColor(0x5865F2);
+      
+      const consultingEmbed = new EmbedBuilder()
+        .addFields({
+          name: '1) Consulting — $90/hour (Full Flexibility)',
+          value: '**Suitable for:**\n• Varied needs\n• Multiple tasks\n• Maintenance\n• Adjustments\n• Continuous or evolving work\n\n**Details:**\n• Minimum sessions: 1h\n• Payment must be made within 3 days after the quote is issued. After 3 days, the quote automatically expires.\n• Upfront (40%) applies only to scope-based services, not consulting.\n• Billing based on actual time spent',
+          inline: false
+        })
+        .setColor(0x5B6EE8);
+      
+      const scopeEmbed = new EmbedBuilder()
+        .addFields({
+          name: '2) Scope-Based Service — Fixed Price (Strict Scope)',
+          value: '**Suitable for:**\n• Precise deliverables\n• Defined modules\n• Complete systems with specifications\n\n**Details:**\n• Scope defined BEFORE start\n• No additions included outside scope\n• Any extra = separate quote\n• 40% upfront (non-refundable)\n• 60% upon delivery',
+          inline: false
+        })
+        .setColor(0x6077DE);
+      
+      const spacerEmbed3 = new EmbedBuilder()
+        .setDescription('\u200B')
+        .setColor(0x2f3136);
+      
+      const securityEmbed = new EmbedBuilder()
+        .addFields({
+          name: '〚🔒〛 Security Policy',
+          value: 'Once the service is delivered and validated, **no refunds** are possible.\n\nThe initial payment (40%) is non-refundable, even if the project is stopped, as it covers:\n• Slot reservation\n• Preparation hours\n• Already produced elements',
+          inline: false
+        })
+        .setColor(0x5865F2)
+        .setFooter({ text: 'Kentiq Universe • Payment Information' })
+        .setTimestamp();
+      
+      const skillsEmbed = new EmbedBuilder()
+        .setDescription(`Want to know what my skills are? Click here: <#1358465216806912060>`)
+        .setColor(0x5865F2);
+
+      await interaction.reply({ 
+        embeds: [
+          titleEmbed, 
+          spacerEmbed1, 
+          paymentMethodsEmbed, 
+          spacerEmbed2, 
+          billingModesEmbed, 
+          consultingEmbed, 
+          scopeEmbed, 
+          spacerEmbed3, 
+          securityEmbed,
+          skillsEmbed
+        ], 
+        ephemeral: false 
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /payment:', error);
+      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
   if (interaction.commandName === 'stats') {
     try {
       await interaction.deferReply();

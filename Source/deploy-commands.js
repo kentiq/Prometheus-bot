@@ -216,7 +216,15 @@ const commands = [
   new SlashCommandBuilder()
     .setName('backup')
     .setDescription('Crée une sauvegarde de tous les fichiers JSON.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('rules')
+    .setDescription('Display server rules.'),
+
+  new SlashCommandBuilder()
+    .setName('payment')
+    .setDescription('Display payment information and methods.')
 ].map(command => command.toJSON());
 
 // Vérification des variables d'environnement requises
