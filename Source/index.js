@@ -1146,8 +1146,12 @@ client.on('interactionCreate', async interaction => {
       // Applications
       const applicationsPath = path.join(imagesDir, 'Applications.png');
       if (fs.existsSync(applicationsPath)) {
+        const applicationsAttachment = new AttachmentBuilder(applicationsPath, { name: 'Applications.png' });
+        files.push(applicationsAttachment);
+
         const applicationsEmbed = new EmbedBuilder()
           .setTitle('〚💻〛 Les applications que je maîtrise')
+          .setImage('attachment://Applications.png')
           .setColor(0x5865F2);
         
         embeds.push(applicationsEmbed);
@@ -1156,100 +1160,60 @@ client.on('interactionCreate', async interaction => {
           .setDescription('\u200B')
           .setColor(0x2f3136);
         embeds.push(spacerEmbed1);
+      }
 
-        const applicationsAttachment = new AttachmentBuilder(applicationsPath, { name: 'Applications.png' });
-        files.push(applicationsAttachment);
+      // Auxiliary Skills
+      const auxiliaryPath = path.join(imagesDir, 'Auxiliary Skills.png');
+      if (fs.existsSync(auxiliaryPath)) {
+        const auxiliaryAttachment = new AttachmentBuilder(auxiliaryPath, { name: 'AuxiliarySkills.png' });
+        files.push(auxiliaryAttachment);
 
-        const applicationsImageEmbed = new EmbedBuilder()
-          .setImage('attachment://Applications.png')
-          .setColor(0x5865F2);
-        embeds.push(applicationsImageEmbed);
-
+        const auxiliaryEmbed = new EmbedBuilder()
+          .setTitle('〚🛠️〛 Auxiliary Skills')
+          .setImage('attachment://AuxiliarySkills.png')
+          .setColor(0x5B6EE8);
+        
+        embeds.push(auxiliaryEmbed);
+        
         const spacerEmbed2 = new EmbedBuilder()
           .setDescription('\u200B')
           .setColor(0x2f3136);
         embeds.push(spacerEmbed2);
       }
 
-      // Auxiliary Skills
-      const auxiliaryPath = path.join(imagesDir, 'Auxiliary Skills.png');
-      if (fs.existsSync(auxiliaryPath)) {
-        const auxiliaryEmbed = new EmbedBuilder()
-          .setTitle('〚🛠️〛 Auxiliary Skills')
-          .setColor(0x5B6EE8);
+      // Frameworks
+      const frameworksPath = path.join(imagesDir, 'Frameworks.png');
+      if (fs.existsSync(frameworksPath)) {
+        const frameworksAttachment = new AttachmentBuilder(frameworksPath, { name: 'Frameworks.png' });
+        files.push(frameworksAttachment);
+
+        const frameworksEmbed = new EmbedBuilder()
+          .setTitle('〚⚙️〛 Frameworks')
+          .setImage('attachment://Frameworks.png')
+          .setColor(0x6077DE);
         
-        embeds.push(auxiliaryEmbed);
+        embeds.push(frameworksEmbed);
         
         const spacerEmbed3 = new EmbedBuilder()
           .setDescription('\u200B')
           .setColor(0x2f3136);
         embeds.push(spacerEmbed3);
-
-        const auxiliaryAttachment = new AttachmentBuilder(auxiliaryPath, { name: 'AuxiliarySkills.png' });
-        files.push(auxiliaryAttachment);
-
-        const auxiliaryImageEmbed = new EmbedBuilder()
-          .setImage('attachment://AuxiliarySkills.png')
-          .setColor(0x5B6EE8);
-        embeds.push(auxiliaryImageEmbed);
-
-        const spacerEmbed4 = new EmbedBuilder()
-          .setDescription('\u200B')
-          .setColor(0x2f3136);
-        embeds.push(spacerEmbed4);
-      }
-
-      // Frameworks
-      const frameworksPath = path.join(imagesDir, 'Frameworks.png');
-      if (fs.existsSync(frameworksPath)) {
-        const frameworksEmbed = new EmbedBuilder()
-          .setTitle('〚⚙️〛 Frameworks')
-          .setColor(0x6077DE);
-        
-        embeds.push(frameworksEmbed);
-        
-        const spacerEmbed5 = new EmbedBuilder()
-          .setDescription('\u200B')
-          .setColor(0x2f3136);
-        embeds.push(spacerEmbed5);
-
-        const frameworksAttachment = new AttachmentBuilder(frameworksPath, { name: 'Frameworks.png' });
-        files.push(frameworksAttachment);
-
-        const frameworksImageEmbed = new EmbedBuilder()
-          .setImage('attachment://Frameworks.png')
-          .setColor(0x6077DE);
-        embeds.push(frameworksImageEmbed);
-
-        const spacerEmbed6 = new EmbedBuilder()
-          .setDescription('\u200B')
-          .setColor(0x2f3136);
-        embeds.push(spacerEmbed6);
       }
 
       // Languages
       const languagesPath = path.join(imagesDir, 'Languages.png');
       if (fs.existsSync(languagesPath)) {
+        const languagesAttachment = new AttachmentBuilder(languagesPath, { name: 'Languages.png' });
+        files.push(languagesAttachment);
+
         const languagesEmbed = new EmbedBuilder()
           .setTitle('〚🌐〛 Languages')
+          .setImage('attachment://Languages.png')
           .setColor(0x5865F2)
           .setFooter({ text: 'Prometheus • Protocole d\'Identification' })
           .setTimestamp();
         
         embeds.push(languagesEmbed);
-        
-        const spacerEmbed7 = new EmbedBuilder()
-          .setDescription('\u200B')
-          .setColor(0x2f3136);
-        embeds.push(spacerEmbed7);
-
-        const languagesAttachment = new AttachmentBuilder(languagesPath, { name: 'Languages.png' });
-        files.push(languagesAttachment);
-
-        const languagesImageEmbed = new EmbedBuilder()
-          .setImage('attachment://Languages.png')
-          .setColor(0x5865F2);
-        embeds.push(languagesImageEmbed);
       }
 
       if (embeds.length === 0) {
