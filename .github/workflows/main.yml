@@ -2,7 +2,7 @@ name: Deploy Prometheus Bot
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   deploy:
@@ -10,33 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
+
+      # 1) Récupération du repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
+      # 2) Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 3. Install dependencies (CI only)
+      # 3) Install (local)
       - name: Install dependencies
         run: npm install
 
-      #############################################################
-      #   (A) SIGNAL : Appeler ton bot pour dire "deployment start"
-      #############################################################
-      - name: Notify bot of deployment start
+      ###########################################################
+      # A) INFORMER LE BOT (POST /deploy)
+      ###########################################################
+      - name: Notify bot: deploy start
         run: |
-          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" \
-               -H "Content-Type: application/json" \
-               -d "{\"commit\":\"${GITHUB_SHA}\"}" || true
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" \
+            -H "Content-Type: application/json" \
+            -d "{\"commit\": \"${{ github.sha }}\"}"
 
-      #############################################################
-      #   (B) Déploiement sur le VPS
-      #############################################################
-      - name: Deploy on VPS via SSH
+      ###########################################################
+      # B) SSH + PM2 RELOAD
+      ###########################################################
+      - name: Deploy to VPS via SSH
+        id: ssh_deploy
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -48,22 +50,39 @@ jobs:
             npm install --omit=dev
             pm2 reload prometheus-bot
 
-      #############################################################
-      #   (C) SIGNAL : SUCCESS
-      #############################################################
-      - name: Notify SUCCESS
+      ###########################################################
+      # C) WAIT — Le bot doit redémarrer et relancer Express
+      ###########################################################
+      - name: Wait for bot / healthcheck
+        run: |
+          echo "Waiting for internal deploy server to restart..."
+          for i in {1..15}; do
+            if curl -s "http://${{ secrets.VPS_HOST }}:3030/health" > /dev/null; then
+              echo "Bot is back online!"
+              exit 0
+            fi
+            echo "Still offline... retrying ($i/15)"
+            sleep 1
+          done
+          echo "ERROR: Bot did not restart in time."
+          exit 1
+
+      ###########################################################
+      # D) SUCCESS
+      ###########################################################
+      - name: Notify bot: success
         if: ${{ success() }}
         run: |
-          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/success" \
-               -H "Content-Type: application/json" \
-               -d "{}" || true
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/success" \
+            -H "Content-Type: application/json"
 
-      #############################################################
-      #   (D) SIGNAL : FAILURE
-      #############################################################
-      - name: Notify FAILURE
+      ###########################################################
+      # E) FAILURE
+      ###########################################################
+      - name: Notify bot: failure
         if: ${{ failure() }}
         run: |
-          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/fail" \
-               -H "Content-Type: application/json" \
-               -d "{\"commit\":\"${GITHUB_SHA}\"}" || true
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/fail" \
+            -H "Content-Type: application/json" \
+            -d "{\"commit\": \"${{ github.sha }}\", \"error\": \"Pipeline failed.\"}"
+
