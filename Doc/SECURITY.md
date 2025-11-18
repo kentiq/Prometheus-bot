@@ -118,7 +118,7 @@
 - ✅ Pas de code malveillant évident
 
 **Risques résiduels :**
-- ⚠️ Dépendances npm (vérifier régulièrement)
+- ⚠️ Dépendances npm (vérifier régulièrement)t
 - ⚠️ Serveur d'hébergement (si hébergé en ligne)
 - ⚠️ Erreurs de code (tester régulièrement)
 
