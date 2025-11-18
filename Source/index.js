@@ -651,6 +651,53 @@ process.on('uncaughtException', error => {
   process.exit(1);
 });
 
+// --- DM command: /credits ---
+client.on('messageCreate', async (message) => {
+  try {
+    // Only react in DMs, ignore bots
+    if (message.author.bot) return;
+    if (message.channel.type !== ChannelType.DM) return;
+
+    const content = message.content.trim().toLowerCase();
+    if (!content.startsWith('/credits')) return;
+
+    const userId = message.author.id;
+    const record = kCredits[userId] || { invites: 0, kcredits: 0, tierId: null };
+
+    const tier = getTierForInvites(record.invites || 0);
+    const multiplier = tier?.multiplier ?? 1.0;
+
+    const embed = new EmbedBuilder()
+      .setTitle('〚₭〛 K-Credits — Invite Profile')
+      .setDescription('Current status of your invite contributions and K-Credits inside **Kentiq Universe**.')
+      .addFields(
+        {
+          name: 'Valid invites',
+          value: `\`${record.invites || 0}\``,
+          inline: true
+        },
+        {
+          name: 'K-Credits balance',
+          value: `\`${(record.kcredits || 0).toFixed(2)} ₭\``,
+          inline: true
+        },
+        {
+          name: 'Tier',
+          value: tier ? `${tier.name} (x${multiplier.toFixed(2)})` : 'No Tier reached yet.',
+          inline: false
+        }
+      )
+      .setColor(0x00bcd4)
+      .setFooter({ text: 'Kentiq Universe • Invite Program' })
+      .setTimestamp();
+
+    await message.reply({ embeds: [embed] });
+  } catch (error) {
+    console.error('[ERROR] Error handling DM /credits:', error);
+    await message.reply('❌ An error occurred while retrieving your credits.').catch(() => {});
+  }
+});
+
 client.on('interactionCreate', async interaction => {
   console.log('[INTERACTION] Received interaction:', interaction.type, interaction.isStringSelectMenu() ? `selectMenu:${interaction.customId}` : interaction.commandName || interaction.customId || 'unknown');
   
@@ -2718,7 +2765,8 @@ client.on('interactionCreate', async interaction => {
             value:
               '• Invites stay a **social metric** (prestige, Tiers)\n' +
               '• K-Credits are the **internal currency** used in the K‑Shop (services, access, perks)\n' +
-              '• You can check your profile with `/credits` (invites, K-Credits, Tier)',
+              '• You can check your profile with `/credits` (invites, K-Credits, Tier)\n' +
+              '• For now, run `/credits` in DM with the bot — a dedicated public channel will be added later for program stats',
             inline: false
           },
           {
@@ -2727,6 +2775,7 @@ client.on('interactionCreate', async interaction => {
               '• No fake accounts, no alts\n' +
               '• No invites via spam or mass DM\n' +
               '• Invalid or fraudulent invites do not count\n' +
+              '• Authenticity checks are performed regularly to guarantee fair chances for everyone\n' +
               '• Kentiq reserves the right to adjust invites and Tiers in case of abuse',
             inline: false
           }
