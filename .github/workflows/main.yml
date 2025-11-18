@@ -2,7 +2,7 @@ name: Deploy Prometheus Bot
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -10,30 +10,45 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out repository
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js
+      # 2. Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 3. Install dependencies (optional for testing)
+      # 3. Install (test build)
       - name: Install dependencies
         run: npm install
 
-      # 4. Notify Discord – Déploiement détecté
+      # 4. Extract metadata
+      - name: Extract commit info
+        id: meta
+        run: |
+          echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR=${GITHUB_ACTOR}" >> $GITHUB_ENV
+
+      # 5. Webhook DETECTED
       - name: Send DETECTED message
         run: |
-          echo "Sending DETECTED webhook..."
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{\"content\": \"🟦 **Deploy detected on Prometheus Bot**\"}" \
+               -d "{\"embeds\": [{
+                     \"title\": \"📡 Deploy detected on Prometheus Bot\",
+                     \"description\": \"A pipeline has been triggered.\",
+                     \"color\": 3447003,
+                     \"fields\": [
+                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true },
+                       { \"name\": \"Author\", \"value\": \"${COMMIT_AUTHOR}\", \"inline\": true }
+                     ],
+                     \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
+               }]}" \
                "${{ secrets.DEPLOY_WEBHOOK_URL }}"
 
-      # 5. Deploy on VPS
+      # 6. Deploy on VPS
       - name: Deploy on VPS via SSH
         uses: appleboy/ssh-action@v1.1.0
         with:
@@ -44,22 +59,37 @@ jobs:
             cd /var/www/kentiq-bot
             git pull origin main
             npm install --omit=dev
-            pm2 reload prometheus-bot
+            pm2 reload prometheus-bot || pm2 start Source/index.js --name prometheus-bot
 
-      # 6. Notify Discord – Déploiement réussi
+      # 7. SUCCESS
       - name: Send SUCCESS message
-        if: ${{ success() }}
+        if: success()
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{\"embeds\": [{\"title\": \"🚀 Deployment Success\",\"description\": \"Le bot a été mis à jour et PM2 a rechargé correctement.\",\"color\": 5763719}]}" \
+               -d "{\"embeds\": [{
+                     \"title\": \"🚀 Deployment Success\",
+                     \"description\": \"Bot updated and PM2 reloaded successfully.\",
+                     \"color\": 5763719,
+                     \"fields\": [
+                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true },
+                       { \"name\": \"Duration\", \"value\": \"~20s\", \"inline\": true }
+                     ]
+               }]}" \
                "${{ secrets.DEPLOY_WEBHOOK_URL }}"
 
-      # 7. Notify Discord – Déploiement échoué
+      # 8. FAILURE
       - name: Send FAILURE message
-        if: ${{ failure() }}
+        if: failure()
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{\"embeds\": [{\"title\": \"❌ Deployment Failed\",\"description\": \"Une erreur est survenue pendant le pipeline GitHub Actions.\",\"color\": 15548997}]}" \
+               -d "{\"embeds\": [{
+                     \"title\": \"❌ Deployment Failed\",
+                     \"description\": \"An error occurred during the GitHub Actions pipeline.\",
+                     \"color\": 15548997,
+                     \"fields\": [
+                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true }
+                     ]
+               }]}" \
                "${{ secrets.DEPLOY_WEBHOOK_URL }}"
