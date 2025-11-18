@@ -30,7 +30,9 @@ jobs:
       ###########################################################
       - name: Notify bot: deploy start
         run: |
-          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" -H "Content-Type: application/json" -d "{\"commit\": \"${{ github.sha }}\"}"
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" \
+            -H "Content-Type: application/json" \
+            -d "{\"commit\": \"${{ github.sha }}\"}"
 
       ###########################################################
       # B) SSH + PM2 RELOAD
@@ -71,7 +73,8 @@ jobs:
       - name: Notify bot: success
         if: ${{ success() }}
         run: |
-          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/success" -H "Content-Type: application/json"
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/success" \
+            -H "Content-Type: application/json"
 
       ###########################################################
       # E) FAILURE
@@ -79,5 +82,6 @@ jobs:
       - name: Notify bot: failure
         if: ${{ failure() }}
         run: |
-          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/fail" -H "Content-Type: application/json" -d "{\"commit\": \"${{ github.sha }}\", \"error\": \"Pipeline failed.\"}"
-
+          curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/fail" \
+            -H "Content-Type: application/json" \
+            -d "{\"commit\": \"${{ github.sha }}\", \"error\": \"Pipeline failed.\"}"
