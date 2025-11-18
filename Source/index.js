@@ -1920,14 +1920,22 @@ client.on('interactionCreate', async interaction => {
 
   // --- Handle select menu interactions ---
   if (interaction.isStringSelectMenu() && interaction.customId === 'skill_select') {
-    // Acknowledge l'interaction immédiatement pour éviter l'erreur
-    await interaction.deferUpdate();
+    console.log('[SKILL] Select menu interaction received');
+    console.log('[SKILL] Selected value:', interaction.values[0]);
     
     try {
+      // Acknowledge l'interaction immédiatement pour éviter l'erreur
+      console.log('[SKILL] Deferring update...');
+      await interaction.deferUpdate();
+      console.log('[SKILL] Update deferred successfully');
+      
       const selectedValue = interaction.values[0];
       let embed;
+      
+      console.log('[SKILL] Processing selection:', selectedValue);
 
       if (selectedValue === 'sound_design') {
+        console.log('[SKILL] Building sound_design embed');
         embed = new EmbedBuilder()
           .setTitle('〚🎵〛 Sound Design & Audio Crafting')
           .setDescription('I design and produce the entire sound universe of a project, from subtle sound effects to complete compositions.')
@@ -1941,6 +1949,7 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
+        console.log('[SKILL] sound_design embed built');
       } else if (selectedValue === 'animation') {
         embed = new EmbedBuilder()
           .setTitle('〚🎬〛 Animation & Motion Dynamics')
@@ -2090,34 +2099,63 @@ client.on('interactionCreate', async interaction => {
 
       // Si on a un embed, envoyer en DM
       if (embed) {
+        console.log('[SKILL] Embed created, removing menu components...');
         // Retirer le menu déroulant du message
         await interaction.editReply({ components: [] });
+        console.log('[SKILL] Menu components removed');
         
         try {
+          console.log('[SKILL] Attempting to send DM to user:', interaction.user.tag);
           // Envoyer l'embed en DM
           await interaction.user.send({ embeds: [embed] });
+          console.log('[SKILL] DM sent successfully');
           
           // Confirmer que le DM a été envoyé (message temporaire visible uniquement par l'utilisateur)
+          console.log('[SKILL] Sending confirmation followUp...');
           await interaction.followUp({ 
             content: '✅ Check your DM!', 
             flags: MessageFlags.Ephemeral 
           });
+          console.log('[SKILL] Confirmation followUp sent');
         } catch (dmError) {
+          console.error('[SKILL] DM error:', dmError);
+          console.log('[SKILL] Sending DM error followUp...');
           // Si les DMs sont désactivés, afficher le message d'erreur
           await interaction.followUp({ 
             content: 'I couldn\'t DM you. Please enable direct messages to receive the skill details.',
             flags: MessageFlags.Ephemeral 
           });
+          console.log('[SKILL] DM error followUp sent');
         }
+      } else {
+        console.warn('[SKILL] No embed created for selection:', selectedValue);
       }
     } catch (error) {
       console.error('[ERROR] Error in skill select menu:', error);
+      console.error('[ERROR] Error stack:', error.stack);
+      console.error('[ERROR] Interaction state - deferred:', interaction.deferred, 'replied:', interaction.replied);
       const errorReply = { content: '❌ An error occurred while processing your selection.', flags: MessageFlags.Ephemeral };
       try {
-        await interaction.editReply({ components: [] }).catch(() => {});
-        await interaction.followUp(errorReply).catch(() => {});
+        console.log('[SKILL] Attempting to clean up and send error reply...');
+        if (interaction.deferred) {
+          await interaction.editReply({ components: [] }).catch((e) => {
+            console.error('[SKILL] Failed to editReply:', e);
+          });
+          await interaction.followUp(errorReply).catch((e) => {
+            console.error('[SKILL] Failed to followUp:', e);
+          });
+        } else {
+          await interaction.update({ components: [] }).catch((e) => {
+            console.error('[SKILL] Failed to update:', e);
+          });
+          await interaction.followUp(errorReply).catch((e) => {
+            console.error('[SKILL] Failed to followUp:', e);
+          });
+        }
+        console.log('[SKILL] Error handling completed');
       } catch (err) {
         console.error('[ERROR] Failed to send error reply:', err);
+        console.error('[ERROR] Error reply stack:', err.stack);
       }
     }
   }
