@@ -1,5 +1,5 @@
 // ✅ index.js — English-only public presentation with collab & warning system
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder, MessageFlags, InteractionResponseFlags } = require('discord.js');
 const fs = require('fs');
 const discordTranscripts = require('discord-html-transcripts');
 require('dotenv').config();
@@ -445,7 +445,7 @@ client.on('interactionCreate', async interaction => {
     if (!isAdmin && !checkRateLimit(interaction.user.id)) {
       return interaction.reply({
         content: '⏱️ Vous utilisez les commandes trop rapidement. Veuillez patienter un moment.',
-        ephemeral: true
+        flags: InteractionResponseFlags.Ephemeral
       }).catch(() => {});
     }
   }
@@ -460,12 +460,12 @@ client.on('interactionCreate', async interaction => {
       const existingChannel = interaction.guild.channels.cache.find(c => c.name.toLowerCase() === ticketChannelName.toLowerCase());
 
       if (existingChannel) {
-        return interaction.reply({ content: 'You already have an open ticket.', ephemeral: true });
+        return interaction.reply({ content: 'You already have an open ticket.', flags: InteractionResponseFlags.Ephemeral });
       }
 
       const category = await interaction.guild.channels.fetch(ticketsConfig.categoryId);
       if (!category || category.type !== ChannelType.GuildCategory) {
-          return interaction.reply({ content: 'Error: The ticket category is misconfigured. Please contact an admin.', ephemeral: true });
+          return interaction.reply({ content: 'Error: The ticket category is misconfigured. Please contact an admin.', flags: InteractionResponseFlags.Ephemeral });
       }
 
       const newChannel = await interaction.guild.channels.create({
@@ -498,14 +498,14 @@ client.on('interactionCreate', async interaction => {
         components: [closeButtonRow],
       });
       
-      await interaction.reply({ content: `Your ticket has been created: ${newChannel}`, ephemeral: true });
+      await interaction.reply({ content: `Your ticket has been created: ${newChannel}`, flags: InteractionResponseFlags.Ephemeral });
     }
 
     // --- Close Ticket Request ---
     if (interaction.customId === 'close_ticket_request') {
         const ticketsConfig = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'Configuration', 'tickets.json'), 'utf8'));
         if (!interaction.member.roles.cache.has(ticketsConfig.supportRoleId)) {
-            return interaction.reply({ content: 'You do not have permission to close this ticket.', ephemeral: true });
+            return interaction.reply({ content: 'You do not have permission to close this ticket.', flags: InteractionResponseFlags.Ephemeral });
         }
         
         const confirmationEmbed = new EmbedBuilder()
@@ -560,11 +560,11 @@ client.on('interactionCreate', async interaction => {
   // --- /setup-welcome ---
   if (interaction.commandName === 'setup-welcome') {
     if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
-      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', flags: InteractionResponseFlags.Ephemeral });
     }
 
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const channelInput = interaction.options.getString('channel');
       let webhookChannel;
@@ -648,7 +648,7 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'setup-tickets') {
     const setupChannelId = config.channels?.setupTickets;
     if (setupChannelId && interaction.channel.id !== setupChannelId) {
-        return interaction.reply({ content: `This command must be run in the <#${setupChannelId}> channel.`, ephemeral: true });
+        return interaction.reply({ content: `This command must be run in the <#${setupChannelId}> channel.`, flags: InteractionResponseFlags.Ephemeral });
     }
 
     const category = interaction.options.getChannel('category');
@@ -676,7 +676,7 @@ client.on('interactionCreate', async interaction => {
     );
 
     await interaction.channel.send({ embeds: [embed], components: [row] });
-    await interaction.reply({ content: 'The ticket panel has been configured successfully!', ephemeral: true });
+    await interaction.reply({ content: 'The ticket panel has been configured successfully!', flags: InteractionResponseFlags.Ephemeral });
   }
 
   // --- /present ---
@@ -959,7 +959,7 @@ client.on('interactionCreate', async interaction => {
         .setColor(channelData.color);
       await interaction.reply({ embeds: [embed] });
     } else {
-      await interaction.reply({ content: 'Channel not found!', ephemeral: true });
+      await interaction.reply({ content: 'Channel not found!', flags: InteractionResponseFlags.Ephemeral });
     }
   }
 
@@ -1236,7 +1236,7 @@ client.on('interactionCreate', async interaction => {
   // --- /com ---
   if (interaction.commandName === 'com') {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const status = interaction.options.getString('status');
       const channelId = config.channels?.commsStatus;
@@ -1354,7 +1354,7 @@ client.on('interactionCreate', async interaction => {
       .setFooter({ text: 'Prometheus • Digital artifact archivist' })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: InteractionResponseFlags.Ephemeral });
   }
 
   // --- /stats ---
@@ -1408,7 +1408,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({ embeds: [rulesEmbed], ephemeral: false });
     } catch (error) {
       console.error('[ERROR] Error in /rules:', error);
-      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
@@ -1423,12 +1423,12 @@ client.on('interactionCreate', async interaction => {
       if (!isAdmin) {
         return interaction.reply({ 
           content: '❌ You must be an administrator to use this command.', 
-          ephemeral: true 
+          flags: InteractionResponseFlags.Ephemeral 
         });
       }
 
       // Répondre immédiatement pour éviter le timeout Discord
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const { sendDeployUpdate } = require(path.join(__dirname, 'webhooks', 'deploy-monitor'));
       
@@ -1456,7 +1456,7 @@ client.on('interactionCreate', async interaction => {
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply({ content: errorMessage });
       } else {
-        await interaction.reply({ content: errorMessage, ephemeral: true });
+        await interaction.reply({ content: errorMessage, flags: InteractionResponseFlags.Ephemeral });
       }
     }
   }
@@ -1543,7 +1543,7 @@ client.on('interactionCreate', async interaction => {
       });
     } catch (error) {
       console.error('[ERROR] Error in /payment:', error);
-      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
@@ -1595,7 +1595,7 @@ client.on('interactionCreate', async interaction => {
   // --- /list-assets ---
   if (interaction.commandName === 'list-assets') {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const assetList = Object.entries(assets).map(([id, asset]) => 
         `• **${id}** — ${asset.name} [${asset.type}]`
@@ -1623,7 +1623,7 @@ client.on('interactionCreate', async interaction => {
   // --- /list-clients ---
   if (interaction.commandName === 'list-clients') {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const clientList = Object.entries(clients).map(([id, clientData]) => 
         `• **${id}** — ${clientData.name} (${clientData.role})`
@@ -1651,7 +1651,7 @@ client.on('interactionCreate', async interaction => {
   // --- /list-collabs ---
   if (interaction.commandName === 'list-collabs') {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const collabList = Object.entries(collabs).map(([id, collab]) => 
         `• **${id}** — ${collab.name}`
@@ -1679,7 +1679,7 @@ client.on('interactionCreate', async interaction => {
   // --- /search ---
   if (interaction.commandName === 'search') {
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const query = interaction.options.getString('query').toLowerCase();
       const type = interaction.options.getString('type') || 'all';
@@ -1750,11 +1750,11 @@ client.on('interactionCreate', async interaction => {
     // Double vérification des permissions
     if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
       console.warn(`[WARN] Unauthorized /reload attempt by ${interaction.user.tag} (${interaction.user.id})`);
-      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', flags: InteractionResponseFlags.Ephemeral });
     }
 
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       // Vider les objets existants
       Object.keys(assets).forEach(key => delete assets[key]);
@@ -1802,11 +1802,11 @@ client.on('interactionCreate', async interaction => {
     // Double vérification des permissions
     if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
       console.warn(`[WARN] Unauthorized /backup attempt by ${interaction.user.tag} (${interaction.user.id})`);
-      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', flags: InteractionResponseFlags.Ephemeral });
     }
 
     try {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const backupDir = path.join(__dirname, '..', 'backups');
@@ -1908,7 +1908,7 @@ client.on('interactionCreate', async interaction => {
       });
     } catch (error) {
       console.error('[ERROR] Error in /skill:', error);
-      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
@@ -2127,7 +2127,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({ embeds: [embed], ephemeral: false });
     } catch (error) {
       console.error('[ERROR] Error in /finish:', error);
-      const errorReply = { content: '❌ An error occurred while processing this command.', ephemeral: true };
+      const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
