@@ -1922,9 +1922,10 @@ client.on('interactionCreate', async interaction => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'skill_select') {
     try {
       const selectedValue = interaction.values[0];
+      let embed;
 
       if (selectedValue === 'sound_design') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🎵〛 Sound Design & Audio Crafting')
           .setDescription('I design and produce the entire sound universe of a project, from subtle sound effects to complete compositions.')
           .addFields(
@@ -1937,11 +1938,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'animation') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🎬〛 Animation & Motion Dynamics')
           .setDescription('I create animations that bring characters, interfaces, and environments to life. The goal: make every action readable, fluid, and pleasant to experience.')
           .addFields(
@@ -1954,11 +1952,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'vfx') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚✨〛 Visual Effects (VFX)')
           .setDescription('I design visual effects that enhance the impact, atmosphere, and readability of the game. My role is to transform an action into a clear, styled, and coherent visual sensation.')
           .addFields(
@@ -1971,11 +1966,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'systems') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚⚙️〛 Systems & Architecture')
           .setDescription('I design reliable, modular, and performant systems that serve as the backbone of the game. The goal: a clear, scalable, and easy-to-maintain architecture.')
           .addFields(
@@ -1988,11 +1980,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'frontend') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🖥️〛 Front-End Roblox Engineering')
           .setDescription('I develop the entire "player interface" client-side: visual logic, interactions, internal organization, and complex UI systems based on real-time data.')
           .addFields(
@@ -2005,11 +1994,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'backend') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🗄️〛 Back-End Roblox Engineering')
           .setDescription('I manage all server-side logic of a game: rules, security, synchronization, data, coherence, and communication with the client. My goal: a robust, predictable, and easy-to-extend backend.')
           .addFields(
@@ -2027,11 +2013,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'frameworks') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚📚〛 Frameworks & Technical Ecosystem')
           .setDescription('I use, compose, and develop frameworks to efficiently structure a project. The goal: build clean, predictable, and extensible architectures, capable of supporting complex and long-term projects.')
           .addFields(
@@ -2059,11 +2042,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === '3d_art') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🧱〛 3D Art & Asset Production')
           .setDescription('I create 3D assets adapted for in-game use, prioritizing cleanliness, optimization, and visual coherence. The goal: provide mastered, efficient, and easy-to-integrate models for any project.')
           .addFields(
@@ -2076,11 +2056,8 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'leadership') {
-        const embed = new EmbedBuilder()
+        embed = new EmbedBuilder()
           .setTitle('〚🧭〛 Technical Leadership & Project Engineering')
           .setDescription('I bring an overall technical vision to a project: how it should be structured, how modules should communicate, and how to maintain solid coherence from start to finish. The goal is to avoid chaos, reduce risks, and guarantee smooth development.')
           .addFields(
@@ -2098,9 +2075,6 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x5865F2)
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
-
-        await interaction.update({ components: [] });
-        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else {
         // Valeur non reconnue
         await interaction.update({ components: [] }).catch(() => {});
@@ -2108,6 +2082,29 @@ client.on('interactionCreate', async interaction => {
           content: '❌ Unknown skill selected.', 
           flags: MessageFlags.Ephemeral 
         }).catch(() => {});
+        return;
+      }
+
+      // Si on a un embed, envoyer en DM
+      if (embed) {
+        await interaction.update({ components: [] });
+        
+        try {
+          // Envoyer l'embed en DM
+          await interaction.user.send({ embeds: [embed] });
+          
+          // Confirmer que le DM a été envoyé (message temporaire visible uniquement par l'utilisateur)
+          await interaction.followUp({ 
+            content: '✅ Check your DM!', 
+            flags: MessageFlags.Ephemeral 
+          });
+        } catch (dmError) {
+          // Si les DMs sont désactivés, afficher le message d'erreur
+          await interaction.followUp({ 
+            content: 'I couldn\'t DM you. Please enable direct messages to receive the skill details.',
+            flags: MessageFlags.Ephemeral 
+          });
+        }
       }
     } catch (error) {
       console.error('[ERROR] Error in skill select menu:', error);
