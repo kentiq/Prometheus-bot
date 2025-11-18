@@ -990,7 +990,7 @@ client.on('interactionCreate', async interaction => {
       let languagesSpoken = '';
       
       // Extract Philosophy (after "### 💭 Philosophy" or "### Philosophy")
-      const philosophyMatch = presentation.match(/###\s*💭\s*Philosophy\s*\n\n(>.*?)(?=\n\n---|\n\n###|$)/s);
+      const philosophyMatch = presentation.match(/###\s*💭\s*Philosophy\s*\n\n((?:>.*\n?)*?)(?=\n\n---|\n\n###|$)/s);
       if (philosophyMatch) {
         philosophy = philosophyMatch[1].trim();
       }
@@ -998,12 +998,25 @@ client.on('interactionCreate', async interaction => {
       // Extract Languages Spoken (after "### 🌐 Languages Spoken" or "### Languages Spoken")
       const languagesMatch = presentation.match(/###\s*🌐\s*Languages\s*Spoken\s*\n\n((?:.*\n?)*?)(?=\n\n---|\n\n###|$)/s);
       if (languagesMatch) {
-        languagesSpoken = languagesMatch[1].trim();
+        // Encadrer les émojis des langues
+        languagesSpoken = languagesMatch[1]
+          .trim()
+          .split('\n')
+          .map(line => {
+            // Trouver l'émojie au début de la ligne et l'encadrer
+            return line.replace(/^(🇫🇷|🇩🇿|🇬🇧|🇮🇹|🇪🇸|🇩🇪|🇯🇵|🇨🇳|🇰🇷|🇷🇺|🇵🇹|🇳🇱|🇸🇪|🇳🇴|🇩🇰|🇫🇮|🇵🇱|🇨🇿|🇭🇺|🇷🇴|🇬🇷|🇹🇷|🇸🇦|🇦🇪|🇮🇱|🇿🇦|🇧🇷|🇲🇽|🇦🇷|🇨🇱|🇨🇴|🇵🇪|🇻🇪|🇨🇦|🇦🇺|🇳🇿|🇮🇳|🇵🇰|🇧🇩|🇱🇰|🇹🇭|🇻🇳|🇮🇩|🇵🇭|🇲🇾|🇸🇬|🇭🇰|🇹🇼)/, '〚$1〛');
+          })
+          .join('\n');
       }
 
       // Build multi-embed structure with separators
       const titleEmbed = new EmbedBuilder()
         .setTitle(`〚⚜️〛 ${identity.name.toUpperCase()} — ${identity.role}`)
+        .addFields({
+          name: '\u200B',
+          value: 'A highly versatile Full-Stack developer specializing in comprehensive polyvalence.',
+          inline: false
+        })
         .setThumbnail(identity.image)
         .setColor(identity.color || 0x5865F2);
 
