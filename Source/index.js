@@ -1904,7 +1904,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({
         content: 'Select a skill from the menu below to learn more:',
         components: [row],
-        ephemeral: true
+        ephemeral: false
       });
     } catch (error) {
       console.error('[ERROR] Error in /skill:', error);
