@@ -1,5 +1,5 @@
 // ✅ index.js — English-only public presentation with collab & warning system
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder, MessageFlags, Partials } = require('discord.js');
 const fs = require('fs');
 const discordTranscripts = require('discord-html-transcripts');
 require('dotenv').config();
@@ -101,6 +101,11 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildMembers
+  ],
+  partials: [
+    Partials.Message,
+    Partials.Channel,
+    Partials.Reaction
   ]
 });
 
@@ -388,6 +393,14 @@ client.on('guildMemberAdd', async (member) => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
   try {
+    console.log('[REACTION] messageReactionAdd received:', {
+      userTag: user?.tag,
+      userId: user?.id,
+      emojiId: reaction?.emoji?.id,
+      emojiName: reaction?.emoji?.name,
+      messageId: reaction?.message?.id
+    });
+    
     // Ignore bot reactions
     if (user.bot) return;
     
@@ -419,7 +432,11 @@ client.on('messageReactionAdd', async (reaction, user) => {
     
     // Check if message is the welcome message
     const welcomeMessageId = config.webhooks?.welcome?.messageId;
-    if (!welcomeMessageId || reaction.message.id !== welcomeMessageId) return;
+    if (!welcomeMessageId || reaction.message.id !== welcomeMessageId) {
+      return;
+    }
+    
+    console.log('[REACTION] Welcome message reaction detected for user:', user.tag, user.id);
     
     const guild = reaction.message.guild;
     if (!guild) return;
