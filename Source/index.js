@@ -1921,12 +1921,13 @@ client.on('interactionCreate', async interaction => {
   }
 
   // --- Handle select menu interactions ---
-  console.log('[DEBUG] Checking select menu - isStringSelectMenu:', interaction.isStringSelectMenu(), 'customId:', interaction.customId);
-  if (interaction.isStringSelectMenu() && interaction.customId === 'skill_select') {
-    console.log('[SKILL] Select menu interaction received');
-    console.log('[SKILL] Selected value:', interaction.values[0]);
-    
-    try {
+  if (interaction.isStringSelectMenu()) {
+    console.log('[DEBUG] StringSelectMenu detected - customId:', interaction.customId, 'values:', interaction.values);
+    if (interaction.customId === 'skill_select') {
+      console.log('[SKILL] Select menu interaction received');
+      console.log('[SKILL] Selected value:', interaction.values[0]);
+      
+      try {
       // Acknowledge l'interaction immédiatement pour éviter l'erreur
       console.log('[SKILL] Deferring update...');
       await interaction.deferUpdate();
@@ -2159,6 +2160,7 @@ client.on('interactionCreate', async interaction => {
       } catch (err) {
         console.error('[ERROR] Failed to send error reply:', err);
         console.error('[ERROR] Error reply stack:', err.stack);
+      }
       }
     }
   }
