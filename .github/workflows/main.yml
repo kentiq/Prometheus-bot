@@ -25,10 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      ###########################################################
+           ###########################################################
       # A) INFORMER LE BOT (POST /deploy)
       ###########################################################
-      - name: Notify bot: deploy start
+      - name: Notify bot
         run: |
           curl -s -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" \
             -H "Content-Type: application/json" \
