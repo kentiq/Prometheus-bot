@@ -984,15 +984,91 @@ client.on('interactionCreate', async interaction => {
       await interaction.editReply({ content: `\`\`\`[ CHARGEMENT FLUX DE DONNÉES... SUJET : ${identity.name.toUpperCase()} ]\`\`\`` });
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Build the final embed
-      const embed = new EmbedBuilder()
-        .setColor(identity.color)
-        .setTitle(`⚜️ ${identity.name.toUpperCase()} — ${identity.role}`)
-        .setDescription(identity.presentation_markdown || '*Aucune présentation définie.*')
-        .setThumbnail(identity.image)
-        .setFooter({ text: 'Prometheus • Protocole d\'Identification' })
-        .setTimestamp();
+      // Parse presentation_markdown to extract Philosophy and Languages Spoken
+      const presentation = identity.presentation_markdown || '';
+      let philosophy = '';
+      let languagesSpoken = '';
       
+      // Extract Philosophy (after "### 💭 Philosophy" or "### Philosophy")
+      const philosophyMatch = presentation.match(/###\s*💭\s*Philosophy\s*\n\n(>.*?)(?=\n\n---|\n\n###|$)/s);
+      if (philosophyMatch) {
+        philosophy = philosophyMatch[1].trim();
+      }
+      
+      // Extract Languages Spoken (after "### 🌐 Languages Spoken" or "### Languages Spoken")
+      const languagesMatch = presentation.match(/###\s*🌐\s*Languages\s*Spoken\s*\n\n((?:.*\n?)*?)(?=\n\n---|\n\n###|$)/s);
+      if (languagesMatch) {
+        languagesSpoken = languagesMatch[1].trim();
+      }
+
+      // Build multi-embed structure with separators
+      const titleEmbed = new EmbedBuilder()
+        .setTitle(`〚⚜️〛 ${identity.name.toUpperCase()} — ${identity.role}`)
+        .setThumbnail(identity.image)
+        .setColor(identity.color || 0x5865F2);
+
+      const spacerEmbed1 = new EmbedBuilder()
+        .setDescription('\u200B')
+        .setColor(0x2f3136);
+
+      const embeds = [titleEmbed, spacerEmbed1];
+
+      // Philosophy embed
+      if (philosophy) {
+        const philosophyEmbed = new EmbedBuilder()
+          .addFields({
+            name: '〚💭〛 Philosophy',
+            value: philosophy,
+            inline: false
+          })
+          .setColor(0x5865F2);
+        embeds.push(philosophyEmbed);
+        
+        const spacerEmbed2 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed2);
+      }
+
+      // Languages Spoken embed
+      if (languagesSpoken) {
+        const languagesEmbed = new EmbedBuilder()
+          .addFields({
+            name: '〚🌐〛 Languages Spoken',
+            value: languagesSpoken,
+            inline: false
+          })
+          .setColor(0x5B6EE8);
+        embeds.push(languagesEmbed);
+        
+        const spacerEmbed3 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed3);
+      }
+
+      // Links embed
+      if (identity.links && Object.keys(identity.links).length > 0) {
+        const linksText = Object.entries(identity.links)
+          .filter(([_, url]) => url && url.startsWith('http'))
+          .map(([key, url]) => `> ${key.charAt(0).toUpperCase() + key.slice(1)}: [${key}](${url})`)
+          .join('\n');
+        
+        if (linksText) {
+          const linksEmbed = new EmbedBuilder()
+            .addFields({
+              name: '〚🔗〛 Links',
+              value: linksText,
+              inline: false
+            })
+            .setColor(0x6077DE)
+            .setFooter({ text: 'Prometheus • Protocole d\'Identification' })
+            .setTimestamp();
+          embeds.push(linksEmbed);
+        }
+      }
+
+      // Build buttons row
       const row = new ActionRowBuilder();
       if (identity.links) {
         Object.entries(identity.links).forEach(([key, url]) => {
@@ -1007,7 +1083,7 @@ client.on('interactionCreate', async interaction => {
         });
       }
 
-      const replyOptions = { content: '', embeds: [embed] };
+      const replyOptions = { content: '', embeds: embeds };
       if (row.components.length > 0) {
         replyOptions.components = [row];
       }
