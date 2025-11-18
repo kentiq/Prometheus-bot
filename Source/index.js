@@ -439,16 +439,17 @@ process.on('uncaughtException', error => {
 });
 
 client.on('interactionCreate', async interaction => {
-  // Rate limiting (sauf pour les admins)
-  if (interaction.isChatInputCommand() || interaction.isButton()) {
-    const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
-    if (!isAdmin && !checkRateLimit(interaction.user.id)) {
-      return interaction.reply({
-        content: '⏱️ Vous utilisez les commandes trop rapidement. Veuillez patienter un moment.',
-        flags: InteractionResponseFlags.Ephemeral
-      }).catch(() => {});
+  try {
+    // Rate limiting (sauf pour les admins)
+    if (interaction.isChatInputCommand() || interaction.isButton()) {
+      const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
+      if (!isAdmin && !checkRateLimit(interaction.user.id)) {
+        return interaction.reply({
+          content: '⏱️ Vous utilisez les commandes trop rapidement. Veuillez patienter un moment.',
+          flags: InteractionResponseFlags.Ephemeral
+        }).catch(() => {});
+      }
     }
-  }
 
   // --- Ticket System ---
   if (interaction.isButton()) {
@@ -2100,17 +2101,26 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.update({ components: [] });
         await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      } else {
+        // Valeur non reconnue
+        await interaction.update({ components: [] }).catch(() => {});
+        await interaction.followUp({ 
+          content: '❌ Unknown skill selected.', 
+          flags: MessageFlags.Ephemeral 
+        }).catch(() => {});
       }
     } catch (error) {
       console.error('[ERROR] Error in skill select menu:', error);
       const errorReply = { content: '❌ An error occurred while processing your selection.', flags: MessageFlags.Ephemeral };
-      if (interaction.deferred || interaction.replied) {
-        await interaction.followUp(errorReply).catch(() => {
-          interaction.update({ components: [] }).catch(() => {});
-        });
-      } else {
-        await interaction.update({ components: [] }).catch(() => {});
-        await interaction.followUp(errorReply).catch(() => {});
+      try {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.followUp(errorReply).catch(() => {});
+        } else {
+          await interaction.update({ components: [] }).catch(() => {});
+          await interaction.followUp(errorReply).catch(() => {});
+        }
+      } catch (err) {
+        console.error('[ERROR] Failed to send error reply:', err);
       }
     }
   }
@@ -2132,6 +2142,20 @@ client.on('interactionCreate', async interaction => {
         await interaction.editReply(errorReply);
       } else {
         await interaction.reply(errorReply);
+      }
+    }
+  }
+  } catch (error) {
+    console.error('[ERROR] Unhandled error in interactionCreate:', error);
+    // Essayer de répondre à l'interaction si elle n'a pas encore été répondue
+    if (!interaction.replied && !interaction.deferred) {
+      try {
+        await interaction.reply({ 
+          content: '❌ An unexpected error occurred.', 
+          flags: InteractionResponseFlags.Ephemeral 
+        }).catch(() => {});
+      } catch (err) {
+        console.error('[ERROR] Failed to send error response:', err);
       }
     }
   }
