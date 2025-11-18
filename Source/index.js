@@ -1923,244 +1923,230 @@ client.on('interactionCreate', async interaction => {
   // --- Handle select menu interactions ---
   if (interaction.isStringSelectMenu()) {
     console.log('[DEBUG] StringSelectMenu detected - customId:', interaction.customId, 'values:', interaction.values);
+
+    // --- /skill select menu ---
     if (interaction.customId === 'skill_select') {
       console.log('[SKILL] Select menu interaction received');
       console.log('[SKILL] Selected value:', interaction.values[0]);
-      
-      try {
-      // Acknowledge l'interaction immédiatement pour éviter l'erreur
-      console.log('[SKILL] Deferring update...');
-      await interaction.deferUpdate();
-      console.log('[SKILL] Update deferred successfully');
-      
-      const selectedValue = interaction.values[0];
-      let embed;
-      
-      console.log('[SKILL] Processing selection:', selectedValue);
 
-      if (selectedValue === 'sound_design') {
-        console.log('[SKILL] Building sound_design embed');
-        embed = new EmbedBuilder()
-          .setTitle('〚🎵〛 Sound Design & Audio Crafting')
-          .setDescription('I design and produce the entire sound universe of a project, from subtle sound effects to complete compositions.')
-          .addFields(
-            {
+      try {
+        // On répond avec un message éphémère séparé
+        console.log('[SKILL] Deferring reply (ephemeral)...');
+
+        await interaction.deferReply({ ephemeral: true });
+
+        console.log('[SKILL] Reply deferred successfully');
+
+        const selectedValue = interaction.values[0];
+        let embed;
+
+        console.log('[SKILL] Processing selection:', selectedValue);
+
+        if (selectedValue === 'sound_design') {
+          console.log('[SKILL] Building sound_design embed');
+
+          embed = new EmbedBuilder()
+            .setTitle('〚🎵〛 Sound Design & Audio Crafting')
+            .setDescription('I design and produce the entire sound universe of a project, from subtle sound effects to complete compositions.')
+            .addFields({
               name: 'What I do:',
               value: '• Creation of original OSTs (ambiences, themes, action music)\n• SFX production: impacts, UI, footsteps, magic, 3D interfaces, environment\n• Audio mixing and balancing for good in-game clarity\n• Design of coherent sound identities according to the project\'s style\n• Sound integration with gameplay (timing, reactivity, feedback)\n• Audio layers (overlay, transitions, dynamic variations)\n• Cleaning and editing samples for clean quality\n• Sound staging for cinematics, cutscenes and key moments',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-        console.log('[SKILL] sound_design embed built');
-      } else if (selectedValue === 'animation') {
-        embed = new EmbedBuilder()
-          .setTitle('〚🎬〛 Animation & Motion Dynamics')
-          .setDescription('I create animations that bring characters, interfaces, and environments to life. The goal: make every action readable, fluid, and pleasant to experience.')
-          .addFields(
-            {
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+
+          console.log('[SKILL] sound_design embed built');
+        } else if (selectedValue === 'animation') {
+          embed = new EmbedBuilder()
+            .setTitle('〚🎬〛 Animation & Motion Dynamics')
+            .setDescription('I create animations that bring characters, interfaces, and environments to life. The goal: make every action readable, fluid, and pleasant to experience.')
+            .addFields({
               name: 'What I do:',
               value: '• Character and creature animations (movements, attacks, reactions)\n• Object and prop animation (mechanics, transitions, interactive elements)\n• Animated staging for cutscenes, introductions, and narrative moments\n• Creation of natural cycles (breathing, idle loops, movements)\n• Animation–gameplay sync: precise timing for punch, impact, speed\n• Fine adjustments: interpolation, curves, easing, fluidity\n• Work on "weight" and visual coherence according to the game\'s style\n• Clean integration into gameplay or UI systems',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'vfx') {
-        embed = new EmbedBuilder()
-          .setTitle('〚✨〛 Visual Effects (VFX)')
-          .setDescription('I design visual effects that enhance the impact, atmosphere, and readability of the game. My role is to transform an action into a clear, styled, and coherent visual sensation.')
-          .addFields(
-            {
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'vfx') {
+          embed = new EmbedBuilder()
+            .setTitle('〚✨〛 Visual Effects (VFX)')
+            .setDescription('I design visual effects that enhance the impact, atmosphere, and readability of the game. My role is to transform an action into a clear, styled, and coherent visual sensation.')
+            .addFields({
               name: 'What I do:',
               value: '• Creation of gameplay effects: impacts, dash, spells, projectiles, explosions\n• Atmospheric effects: particles, dust, smoke, lights, distortions\n• Glitches, deformations, stylized special effects for interfaces or 3D surfaces\n• Texture animation (scrolling, gradients, dynamic patterns)\n• Setup of effects synchronized with animations and sounds\n• Construction of narrative effects: transitions, intense scenes, key moments\n• VFX optimization (performance, particle budget, visual coherence)\n• Clean and stable integration into gameplay, UI, or cinematic systems',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'systems') {
-        embed = new EmbedBuilder()
-          .setTitle('〚⚙️〛 Systems & Architecture')
-          .setDescription('I design reliable, modular, and performant systems that serve as the backbone of the game. The goal: a clear, scalable, and easy-to-maintain architecture.')
-          .addFields(
-            {
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'systems') {
+          embed = new EmbedBuilder()
+            .setTitle('〚⚙️〛 Systems & Architecture')
+            .setDescription('I design reliable, modular, and performant systems that serve as the backbone of the game. The goal: a clear, scalable, and easy-to-maintain architecture.')
+            .addFields({
               name: 'What I do:',
               value: '• Design of modular systems (service-based architecture, controllers, isolated modules)\n• Setup of structured internal flows: initialization, updates, events, clean destruction\n• Definition of internal protocols to organize exchanges between different parts of the game\n• Creation of reusable components: state managers, transversal services, global utilities\n• Structuring of lifecycle management to synchronize loading, registries, and clean-ups\n• Management of event systems: signals, event buses, internal messages\n• Setup of rules and validations to keep the game coherent (anti-errors, anti-illegitimate behaviors)\n• "Scalable" approach: logic designed to support large projects, add features, or scale without recoding\n• Optimization of memory cost, number of calls, and update frequency\n• Clear separation between logical layers, data, UI, gameplay, to avoid spaghetti code',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'frontend') {
-        embed = new EmbedBuilder()
-          .setTitle('〚🖥️〛 Front-End Roblox Engineering')
-          .setDescription('I develop the entire "player interface" client-side: visual logic, interactions, internal organization, and complex UI systems based on real-time data.')
-          .addFields(
-            {
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'frontend') {
+          embed = new EmbedBuilder()
+            .setTitle('〚🖥️〛 Front-End Roblox Engineering')
+            .setDescription('I develop the entire "player interface" client-side: visual logic, interactions, internal organization, and complex UI systems based on real-time data.')
+            .addFields({
               name: 'What I do:',
               value: '• Development of interfaces in TSX / Roact / React-like\n• Creation of modular UI components: buttons, slots, pages, menus, panels\n• Structuring of interfaces via stores (global state), signals, and client synchronization\n• Dynamic UIs that adapt to player data: inventories, hotbar, tabs, descriptions\n• "Data-driven" systems: UI automatically rebuilds based on JSON data or server data\n• UI navigation management: transitions, hierarchies, pages, sub-pages\n• Construction of clean interactions: drag & drop, hover, selection, keyboard/mouse binding\n• Client optimization: reduction of re-renders, lightweight components, efficient state sharing\n• Strict separation between UI (visual) and logic (controllers, stores, signals)\n• Integration of UI feedback: animations, colors, transitions, instant reactions\n• Clean synchronization with server via events, signals, and client controllers',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'backend') {
-        embed = new EmbedBuilder()
-          .setTitle('〚🗄️〛 Back-End Roblox Engineering')
-          .setDescription('I manage all server-side logic of a game: rules, security, synchronization, data, coherence, and communication with the client. My goal: a robust, predictable, and easy-to-extend backend.')
-          .addFields(
-            {
-              name: 'What I do:',
-              value: '• Development of all server logic: gameplay rules, validations, action coherence\n• Setup of client ↔ server communication protocols (events, signals, RPC-like)\n• Management of server authority: action control, anti-exploit checks, global coherence\n• Fine data synchronization: inventories, player states, objects, cooldowns\n• Optimized replication: sending only relevant or modified information\n• Persistence management: save/load, stable formats, versioned updates\n• Structuring of services and modules: clean and maintainable logical separation\n• Creation of validation mechanisms (server → safeguards against client errors or abuse)\n• Design of scalable systems: ability to add features without breaking everything\n• Load balancing: task distribution, delay management, server optimization',
-              inline: false
-            },
-            {
-              name: 'In short:',
-              value: 'I build a solid, secure, precise, and performant backend, capable of supporting a complete, clean, and evolutive project.',
-              inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'frameworks') {
-        embed = new EmbedBuilder()
-          .setTitle('〚📚〛 Frameworks & Technical Ecosystem')
-          .setDescription('I use, compose, and develop frameworks to efficiently structure a project. The goal: build clean, predictable, and extensible architectures, capable of supporting complex and long-term projects.')
-          .addFields(
-            {
-              name: 'What I do:',
-              value: '• Advanced use of Roblox frameworks (Roact, TSX UI, Reflex/Charm, Knit/Flamework, Feather)\n• Construction of reusable UI components based on declarative architecture\n• Setup of state stores, signals, observables, and coherent state management\n• Logical organization via Services / Controllers / Managers to maintain readable projects\n• Creation of internal mini-frameworks when standard frameworks are insufficient\n• Code normalization: structure, conventions, nomenclature, interfaces, shared services\n• Clean integration with gameplay, persistence, networking, and internal systems\n• Technical adaptation: wrappers, helpers, modular systems, overlays to improve existing systems',
-              inline: false
-            },
-            {
-              name: '〚⚜️〛 I also develop my own frameworks',
-              value: 'I don\'t limit myself to using market frameworks. I also design them, with real architecture, modularity, and lifecycle work.',
-              inline: false
-            },
-            {
-              name: 'Some examples:',
-              value: '• **Kentiq UI FX** — Complete UI framework (interactions, notifications, loaders, dynamic FX)\n• **PrometheOS Genesis** — Modular micro-kernel (dependency injection, policies, event bus, lifecycle)\n• **PrometheusSteps** — Dynamic ground deformation engine based on voxels\n• **AI Directive + Predatrice** (conceptual framework) — Dual AI architecture (memory, behaviors, routines)\n• **Housing Framework** (Grand Alfheim) — Client/server modules for mapping, interiors, interactions, persistence\n• **Advanced Projectile System** — Modular projectile system with distinct physical behaviors',
-              inline: false
-            },
-            {
-              name: 'Why it\'s important:',
-              value: 'I am capable of:\n• analyzing an existing system\n• understanding its limitations\n• building on top of it\n• or replacing it with a custom framework\n\nall while guaranteeing readability, extensibility, and stability.',
-              inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === '3d_art') {
-        embed = new EmbedBuilder()
-          .setTitle('〚🧱〛 3D Art & Asset Production')
-          .setDescription('I create 3D assets adapted for in-game use, prioritizing cleanliness, optimization, and visual coherence. The goal: provide mastered, efficient, and easy-to-integrate models for any project.')
-          .addFields(
-            {
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'backend') {
+          embed = new EmbedBuilder()
+            .setTitle('〚🗄️〛 Back-End Roblox Engineering')
+            .setDescription('I manage all server-side logic of a game: rules, security, synchronization, data, coherence, and communication with the client. My goal: a robust, predictable, and easy-to-extend backend.')
+            .addFields(
+              {
+                name: 'What I do:',
+                value: '• Development of all server logic: gameplay rules, validations, action coherence\n• Setup of client ↔ server communication protocols (events, signals, RPC-like)\n• Management of server authority: action control, anti-exploit checks, global coherence\n• Fine data synchronization: inventories, player states, objects, cooldowns\n• Optimized replication: sending only relevant or modified information\n• Persistence management: save/load, stable formats, versioned updates\n• Structuring of services and modules: clean and maintainable logical separation\n• Creation of validation mechanisms (server → safeguards against client errors or abuse)\n• Design of scalable systems: ability to add features without breaking everything\n• Load balancing: task distribution, delay management, server optimization',
+                inline: false
+              },
+              {
+                name: 'In short:',
+                value: 'I build a solid, secure, precise, and performant backend, capable of supporting a complete, clean, and evolutive project.',
+                inline: false
+              }
+            )
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'frameworks') {
+          embed = new EmbedBuilder()
+            .setTitle('〚📚〛 Frameworks & Technical Ecosystem')
+            .setDescription('I use, compose, and develop frameworks to efficiently structure a project. The goal: build clean, predictable, and extensible architectures, capable of supporting complex and long-term projects.')
+            .addFields(
+              {
+                name: 'What I do:',
+                value: '• Advanced use of Roblox frameworks (Roact, TSX UI, Reflex/Charm, Knit/Flamework, Feather)\n• Construction of reusable UI components based on declarative architecture\n• Setup of state stores, signals, observables, and coherent state management\n• Logical organization via Services / Controllers / Managers to maintain readable projects\n• Creation of internal mini-frameworks when standard frameworks are insufficient\n• Code normalization: structure, conventions, nomenclature, interfaces, shared services\n• Clean integration with gameplay, persistence, networking, and internal systems\n• Technical adaptation: wrappers, helpers, modular systems, overlays to improve existing systems',
+                inline: false
+              },
+              {
+                name: '〚⚜️〛 I also develop my own frameworks',
+                value: 'I don\'t limit myself to using market frameworks. I also design them, with real architecture, modularity, and lifecycle work.',
+                inline: false
+              },
+              {
+                name: 'Some examples:',
+                value: '• **Kentiq UI FX** — Complete UI framework (interactions, notifications, loaders, dynamic FX)\n• **PrometheOS Genesis** — Modular micro-kernel (dependency injection, policies, event bus, lifecycle)\n• **PrometheusSteps** — Dynamic ground deformation engine based on voxels\n• **AI Directive + Predatrice** (conceptual framework) — Dual AI architecture (memory, behaviors, routines)\n• **Housing Framework** (Grand Alfheim) — Client/server modules for mapping, interiors, interactions, persistence\n• **Advanced Projectile System** — Modular projectile system with distinct physical behaviors',
+                inline: false
+              },
+              {
+                name: 'Why it\'s important:',
+                value: 'I am capable of:\n• analyzing an existing system\n• understanding its limitations\n• building on top of it\n• or replacing it with a custom framework\n\nall while guaranteeing readability, extensibility, and stability.',
+                inline: false
+              }
+            )
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === '3d_art') {
+          embed = new EmbedBuilder()
+            .setTitle('〚🧱〛 3D Art & Asset Production')
+            .setDescription('I create 3D assets adapted for in-game use, prioritizing cleanliness, optimization, and visual coherence. The goal: provide mastered, efficient, and easy-to-integrate models for any project.')
+            .addFields({
               name: 'What I do:',
               value: '• Low/Mid Poly modeling adapted to Roblox constraints\n• Creation of props, environmental elements, accessories, weapons, structures\n• Light sculpting to give character to shapes without overloading the scene\n• Manual optimization: polycount reduction, duplicate removal, clean geometry\n• Logical UV Unwrapping: clear organization, clean cuts, priority to critical surfaces\n• Creation of stylized or semi-realistic materials and textures\n• Mastery of shading concepts, normal maps, roughness, AO, and volume reading\n• Asset preparation for perfect integration (scale, pivot, orientation, hierarchy)\n• Design of rigging/animation-compatible models when necessary\n• Clean and standardized export, ready for project technical pipelines',
               inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else if (selectedValue === 'leadership') {
-        embed = new EmbedBuilder()
-          .setTitle('〚🧭〛 Technical Leadership & Project Engineering')
-          .setDescription('I bring an overall technical vision to a project: how it should be structured, how modules should communicate, and how to maintain solid coherence from start to finish. The goal is to avoid chaos, reduce risks, and guarantee smooth development.')
-          .addFields(
-            {
-              name: 'What I do:',
-              value: '• Definition of global architecture: repo organization, conventions, logical flows\n• Setup of technical rules: nomenclature, folder structure, code standards\n• Construction of internal design patterns: services, managers, modules, data flows\n• Organization of a coherent ecosystem between: UI, gameplay, systems, backend, data\n• Analysis of an existing project to detect: technical debt, redundancies, inconsistencies\n• Creation of integration plans: how each module properly integrates with others\n• Clear documentation: internal APIs, modules, data formats, usage rules\n• Definition of clean pipelines: how to produce, integrate, test, and deliver efficiently\n• Technical onboarding assistance: clarifying the project approach for other developers\n• Silent technical coordination: ensuring all components follow the same logic',
-              inline: false
-            },
-            {
-              name: 'Why it\'s important:',
-              value: 'A good project doesn\'t hold together just with code that "works".\nIt holds together thanks to a readable, predictable, and stable architecture.\n\nI make sure the project is easy to develop today,\nand even easier to extend in 3 months.',
-              inline: false
-            }
-          )
-          .setColor(0x5865F2)
-          .setFooter({ text: 'Kentiq Universe • Skills' })
-          .setTimestamp();
-      } else {
-        // Valeur non reconnue
-        await interaction.editReply({ components: [] }).catch(() => {});
-        await interaction.followUp({ 
-          content: '❌ Unknown skill selected.', 
-          flags: MessageFlags.Ephemeral 
-        }).catch(() => {});
-        return;
-      }
-
-      // Si on a un embed, envoyer en DM
-      if (embed) {
-        console.log('[SKILL] Embed created, removing menu components...');
-        // Retirer le menu déroulant du message
-        await interaction.editReply({ components: [] });
-        console.log('[SKILL] Menu components removed');
-        
-        try {
-          console.log('[SKILL] Attempting to send DM to user:', interaction.user.tag);
-          // Envoyer l'embed en DM
-          await interaction.user.send({ embeds: [embed] });
-          console.log('[SKILL] DM sent successfully');
-          
-          // Confirmer que le DM a été envoyé (message temporaire visible uniquement par l'utilisateur)
-          console.log('[SKILL] Sending confirmation followUp...');
-          await interaction.followUp({ 
-            content: '✅ Check your DM!', 
-            flags: MessageFlags.Ephemeral 
-          });
-          console.log('[SKILL] Confirmation followUp sent');
-        } catch (dmError) {
-          console.error('[SKILL] DM error:', dmError);
-          console.log('[SKILL] Sending DM error followUp...');
-          // Si les DMs sont désactivés, afficher le message d'erreur
-          await interaction.followUp({ 
-            content: 'I couldn\'t DM you. Please enable direct messages to receive the skill details.',
-            flags: MessageFlags.Ephemeral 
-          });
-          console.log('[SKILL] DM error followUp sent');
-        }
-      } else {
-        console.warn('[SKILL] No embed created for selection:', selectedValue);
-      }
-    } catch (error) {
-      console.error('[ERROR] Error in skill select menu:', error);
-      console.error('[ERROR] Error stack:', error.stack);
-      console.error('[ERROR] Interaction state - deferred:', interaction.deferred, 'replied:', interaction.replied);
-      const errorReply = { content: '❌ An error occurred while processing your selection.', flags: MessageFlags.Ephemeral };
-      try {
-        console.log('[SKILL] Attempting to clean up and send error reply...');
-        if (interaction.deferred) {
-          await interaction.editReply({ components: [] }).catch((e) => {
-            console.error('[SKILL] Failed to editReply:', e);
-          });
-          await interaction.followUp(errorReply).catch((e) => {
-            console.error('[SKILL] Failed to followUp:', e);
-          });
+            })
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
+        } else if (selectedValue === 'leadership') {
+          embed = new EmbedBuilder()
+            .setTitle('〚🧭〛 Technical Leadership & Project Engineering')
+            .setDescription('I bring an overall technical vision to a project: how it should be structured, how modules should communicate, and how to maintain solid coherence from start to finish. The goal is to avoid chaos, reduce risks, and guarantee smooth development.')
+            .addFields(
+              {
+                name: 'What I do:',
+                value: '• Definition of global architecture: repo organization, conventions, logical flows\n• Setup of technical rules: nomenclature, folder structure, code standards\n• Construction of internal design patterns: services, managers, modules, data flows\n• Organization of a coherent ecosystem between: UI, gameplay, systems, backend, data\n• Analysis of an existing project to detect: technical debt, redundancies, inconsistencies\n• Creation of integration plans: how each module properly integrates with others\n• Clear documentation: internal APIs, modules, data formats, usage rules\n• Definition of clean pipelines: how to produce, integrate, test, and deliver efficiently\n• Technical onboarding assistance: clarifying the project approach for other developers\n• Silent technical coordination: ensuring all components follow the same logic',
+                inline: false
+              },
+              {
+                name: 'Why it\'s important:',
+                value: 'A good project doesn\'t hold together just with code that "works".\nIt holds together thanks to a readable, predictable, and stable architecture.\n\nI make sure the project is easy to develop today,\nand even easier to extend in 3 months.',
+                inline: false
+              }
+            )
+            .setColor(0x5865F2)
+            .setFooter({ text: 'Kentiq Universe • Skills' })
+            .setTimestamp();
         } else {
-          await interaction.update({ components: [] }).catch((e) => {
-            console.error('[SKILL] Failed to update:', e);
-          });
-          await interaction.followUp(errorReply).catch((e) => {
-            console.error('[SKILL] Failed to followUp:', e);
-          });
+          // Valeur non reconnue
+          await interaction.message.edit({ components: [] }).catch(() => {});
+
+          await interaction.editReply({
+            content: '❌ Unknown skill selected.'
+          }).catch(() => {});
+
+          return;
         }
-        console.log('[SKILL] Error handling completed');
-      } catch (err) {
-        console.error('[ERROR] Failed to send error reply:', err);
-        console.error('[ERROR] Error reply stack:', err.stack);
-      }
+
+        // Si on a un embed, envoyer en DM
+        if (embed) {
+          console.log('[SKILL] Embed created, removing menu components...');
+
+          // Retirer le menu déroulant du message d'origine
+          await interaction.message.edit({ components: [] }).catch((e) => {
+            console.error('[SKILL] Failed to edit original message:', e);
+          });
+
+          try {
+            console.log('[SKILL] Attempting to send DM to user:', interaction.user.tag);
+
+            // Envoyer l'embed en DM
+            await interaction.user.send({ embeds: [embed] });
+
+            console.log('[SKILL] DM sent successfully');
+
+            // Confirmer que le DM a été envoyé (épinglé à la réponse éphémère)
+            await interaction.editReply({
+              content: '✅ Check your DM!'
+            });
+
+            console.log('[SKILL] Confirmation reply sent');
+          } catch (dmError) {
+            console.error('[SKILL] DM error:', dmError);
+
+            // Si les DMs sont désactivés, afficher le message d'erreur
+            await interaction.editReply({
+              content: 'I couldn\'t DM you. Please enable direct messages to receive the skill details.'
+            });
+
+            console.log('[SKILL] DM error reply sent');
+          }
+        } else {
+          console.warn('[SKILL] No embed created for selection:', selectedValue);
+
+          await interaction.editReply({
+            content: '❌ No skill details available for this selection.'
+          }).catch(() => {});
+        }
+      } catch (error) {
+        console.error('[ERROR] Error in skill select menu:', error);
+        console.error('[ERROR] Error stack:', error.stack);
+
+        try {
+          await interaction.editReply({
+            content: '❌ An error occurred while processing your selection.'
+          }).catch(() => {});
+        } catch (err) {
+          console.error('[ERROR] Failed to send error reply for skill menu:', err);
+        }
       }
     }
   }
