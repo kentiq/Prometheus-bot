@@ -49,7 +49,8 @@ const identityChoices = Object.keys(identities).length > 0
   ? Object.keys(identities).map(key => ({ name: identities[key].name, value: key }))
   : [];
 
-const commands = [
+// Guild-only commands (fast iteration, server context)
+const guildCommands = [
   new SlashCommandBuilder()
     .setName('present')
     .setDescription('Prometheus presents an asset')
@@ -260,13 +261,17 @@ const commands = [
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
   new SlashCommandBuilder()
-  .setName('credits')
-  .setDescription('Affiche vos invitations valides et votre solde de K-Crédits.'),
-
-  new SlashCommandBuilder()
   .setName('setup-invite-program')
   .setDescription('Envoie le panneau de présentation du K-Invite Program.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+].map(command => command.toJSON());
+
+// Global commands (available in DMs)
+const globalCommands = [
+  new SlashCommandBuilder()
+    .setName('credits')
+    .setDescription('Shows your valid invites and K-Credits balance.')
+    .setDMPermission(true)
 ].map(command => command.toJSON());
 
 // Vérification des variables d'environnement requises
@@ -289,12 +294,19 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
-    console.log('[INFO] Deploying slash commands...');
+    console.log('[INFO] Deploying guild slash commands...');
     await rest.put(
       Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-      { body: commands }
+      { body: guildCommands }
     );
-    console.log('[SUCCESS] Commands successfully registered!');
+    console.log('[SUCCESS] Guild commands successfully registered!');
+
+    console.log('[INFO] Deploying global slash commands...');
+    await rest.put(
+      Routes.applicationCommands(process.env.CLIENT_ID),
+      { body: globalCommands }
+    );
+    console.log('[SUCCESS] Global commands successfully registered!');
   } catch (error) {
     console.error('[ERROR] Deployment error:', error);
     process.exit(1);
