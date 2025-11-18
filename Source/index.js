@@ -272,10 +272,15 @@ async function updateWelcomeEmbed(commsStatus) {
 }
 
 client.once('ready', async () => {
-  // Démarrer le serveur de monitoring de déploiement
-  const startDeploymentServer = require(path.join(__dirname, 'deployment', 'server'));
-  startDeploymentServer(client);
   const botName = config.bot?.name || 'PROMETHEUS';
+  
+  // Démarrer le serveur de monitoring de déploiement
+  try {
+    const startDeploymentServer = require(path.join(__dirname, 'deployment', 'server'));
+    startDeploymentServer(client);
+  } catch (error) {
+    console.error('[ERROR] Failed to start deployment server:', error);
+  }
   console.log(`[${botName}] Bot active and ready to transmit digital artifacts.`);
   console.log(`[${botName}] Connected as: ${client.user.tag}`);
   console.log(`[${botName}] Serving ${client.guilds.cache.size} server(s)`);

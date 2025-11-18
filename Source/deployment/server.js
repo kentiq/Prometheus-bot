@@ -74,14 +74,24 @@ function startDeploymentServer(client) {
 
   // Démarrer le serveur sur le port 3030
   const PORT = 3030;
-  app.listen(PORT, () => {
+  const HOST = '0.0.0.0'; // Écouter sur toutes les interfaces
+  
+  const server = app.listen(PORT, HOST, () => {
     console.log(`[DeployMonitor] Internal listener active on port ${PORT}`);
+    console.log(`[DeployMonitor] Server listening on http://${HOST}:${PORT}`);
   });
 
   // Gestion des erreurs du serveur
-  app.on('error', (error) => {
-    console.error('[DeployServer] Server error:', error);
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`[DeployServer] Port ${PORT} is already in use`);
+    } else {
+      console.error('[DeployServer] Server error:', error);
+    }
   });
+
+  // Stocker le serveur dans le client pour pouvoir l'arrêter si nécessaire
+  client.deploymentServer = server;
 }
 
 module.exports = startDeploymentServer;
