@@ -2125,12 +2125,13 @@ client.on('interactionCreate', async interaction => {
           } catch (dmError) {
             console.error('[SKILL] DM error:', dmError);
 
-            // Si les DMs sont désactivés, afficher le message d'erreur
+            // Fallback UX : si les DMs sont désactivés, envoyer l'embed directement dans le salon (éphémère)
             await interaction.editReply({
-              content: 'I couldn\'t DM you. Please enable direct messages to receive the skill details.'
+              content: 'I couldn\'t DM you, so here are the details directly here:',
+              embeds: [embed]
             });
 
-            console.log('[SKILL] DM error reply sent');
+            console.log('[SKILL] DM error reply sent with in-channel fallback');
           }
         } else {
           console.warn('[SKILL] No embed created for selection:', selectedValue);
