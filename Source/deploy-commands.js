@@ -224,7 +224,12 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('payment')
-    .setDescription('Display payment information and methods.')
+    .setDescription('Display payment information and methods.'),
+
+  new SlashCommandBuilder()
+    .setName('deploytest')
+    .setDescription('Vérifie le webhook de monitoring du déploiement.')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ].map(command => command.toJSON());
 
 // Vérification des variables d'environnement requises

@@ -7,6 +7,9 @@ Créez un fichier `.env` à la racine du projet avec les variables suivantes :
 DISCORD_TOKEN=your_discord_bot_token_here
 CLIENT_ID=your_discord_client_id_here
 GUILD_ID=your_discord_guild_id_here
+
+# Deployment Monitoring (Optional)
+DEPLOY_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url_here
 ```
 
 ## Comment obtenir ces valeurs

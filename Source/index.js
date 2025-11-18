@@ -1200,6 +1200,50 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
+  if (interaction.commandName === 'deploytest') {
+    try {
+      const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
+      if (!isAdmin) {
+        return interaction.reply({ 
+          content: '❌ You must be an administrator to use this command.', 
+          ephemeral: true 
+        });
+      }
+
+      // Répondre immédiatement pour éviter le timeout Discord
+      await interaction.deferReply({ ephemeral: true });
+
+      const { sendDeployUpdate } = require(path.join(__dirname, 'webhooks', 'deploy-monitor'));
+      
+      await sendDeployUpdate({
+        title: 'Prometheus Deployment Webhook',
+        description: 'Le webhook de monitoring fonctionne correctement.',
+        color: 0x57F287
+      });
+
+      await interaction.editReply({ 
+        content: '✅ Webhook envoyé dans le channel de monitoring.' 
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /deploytest:', error);
+      
+      let errorMessage = '❌ An error occurred while processing this command.';
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = '❌ Timeout: Le webhook a pris trop de temps à répondre. Vérifiez DEPLOY_WEBHOOK_URL.';
+      } else if (error.response) {
+        errorMessage = `❌ Erreur HTTP ${error.response.status}: ${error.response.statusText}`;
+      } else if (error.request) {
+        errorMessage = '❌ Aucune réponse du webhook. Vérifiez DEPLOY_WEBHOOK_URL.';
+      }
+
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply({ content: errorMessage });
+      } else {
+        await interaction.reply({ content: errorMessage, ephemeral: true });
+      }
+    }
+  }
+
   if (interaction.commandName === 'payment') {
     try {
       const titleEmbed = new EmbedBuilder()

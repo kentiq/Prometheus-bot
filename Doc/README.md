@@ -43,6 +43,14 @@ Le bot inclut un système complet de gestion de tickets avec :
 - Génération automatique de transcriptions HTML
 - Logs dans un canal dédié
 
+## 🔧 Deployment Monitoring
+
+The bot includes a deployment reporting system accessible through:
+- `Source/webhooks/deploy-monitor.js`
+- `Source/deployment/report.js`
+
+These modules allow CI/CD pipelines to send status messages to Discord using `DEPLOY_WEBHOOK_URL`.
+
 ## 🚀 Installation
 
 1. **Cloner le repository**
@@ -97,6 +105,7 @@ npm run dev
 - **discord.js** (^14.18.0) — Bibliothèque Discord.js
 - **discord-html-transcripts** (^3.2.0) — Génération de transcriptions HTML
 - **dotenv** (^16.5.0) — Gestion des variables d'environnement
+- **axios** (^1.7.9) — Client HTTP pour les webhooks de déploiement
 
 ## 📝 Notes
 
