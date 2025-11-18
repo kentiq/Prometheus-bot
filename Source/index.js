@@ -1921,6 +1921,7 @@ client.on('interactionCreate', async interaction => {
   }
 
   // --- Handle select menu interactions ---
+  console.log('[DEBUG] Checking select menu - isStringSelectMenu:', interaction.isStringSelectMenu(), 'customId:', interaction.customId);
   if (interaction.isStringSelectMenu() && interaction.customId === 'skill_select') {
     console.log('[SKILL] Select menu interaction received');
     console.log('[SKILL] Selected value:', interaction.values[0]);
