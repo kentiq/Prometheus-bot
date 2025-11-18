@@ -33,13 +33,16 @@ jobs:
     ###########################################################
     # 3. Extract Webhook ID & Token from secret URL
     ###########################################################
-    - name: Extract webhook parts
+    - name: Extract webhook parts safely
       id: hook
       run: |
         URL="${{ secrets.DEPLOY_WEBHOOK_URL }}"
 
-        ID=$(echo "$URL" | sed -E 's#.*/webhooks/([^/]+)/.*#\1#')
-        TOKEN=$(echo "$URL" | sed -E 's#.*/webhooks/[^/]+/(.*)#\1#')
+        # Extract TOKEN (last segment)
+        TOKEN=$(basename "$URL")
+
+        # Extract ID (segment before last)
+        ID=$(basename $(dirname "$URL"))
 
         echo "wid=$ID" >> $GITHUB_OUTPUT
         echo "wtoken=$TOKEN" >> $GITHUB_OUTPUT
