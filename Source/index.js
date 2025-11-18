@@ -271,7 +271,7 @@ async function updateWelcomeEmbed(commsStatus) {
   }
 }
 
-client.once('ready', async () => {
+client.once('clientReady', async () => {
   const botName = config.bot?.name || 'PROMETHEUS';
   
   // Démarrer le serveur de monitoring de déploiement
@@ -966,7 +966,7 @@ client.on('interactionCreate', async interaction => {
   // --- /whois ---
   if (interaction.commandName === 'whois') {
     try {
-      await interaction.deferReply({ ephemeral: false });
+      await interaction.deferReply({ flags: 0 });
 
       const personId = interaction.options.getString('personne');
       const identity = identities[personId];
@@ -1125,7 +1125,7 @@ client.on('interactionCreate', async interaction => {
   // --- /whois2 ---
   if (interaction.commandName === 'whois2') {
     try {
-      await interaction.deferReply({ ephemeral: false });
+      await interaction.deferReply({ flags: 0 });
 
       const personId = interaction.options.getString('personne');
       const identity = identities[personId];
@@ -1405,7 +1405,7 @@ client.on('interactionCreate', async interaction => {
         .setTimestamp();
 
       // Reply publicly (not ephemeral) so everyone can see it
-      await interaction.reply({ embeds: [rulesEmbed], ephemeral: false });
+      await interaction.reply({ embeds: [rulesEmbed], flags: 0 });
     } catch (error) {
       console.error('[ERROR] Error in /rules:', error);
       const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
@@ -1539,7 +1539,7 @@ client.on('interactionCreate', async interaction => {
           securityEmbed,
           skillsEmbed
         ], 
-        ephemeral: false 
+        flags: 0 
       });
     } catch (error) {
       console.error('[ERROR] Error in /payment:', error);
@@ -1904,7 +1904,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.reply({
         content: 'Select a skill from the menu below to learn more:',
         components: [row],
-        ephemeral: false
+        flags: 0
       });
     } catch (error) {
       console.error('[ERROR] Error in /skill:', error);
@@ -2124,7 +2124,7 @@ client.on('interactionCreate', async interaction => {
         .setFooter({ text: 'Kentiq Universe' })
         .setTimestamp();
 
-      await interaction.reply({ embeds: [embed], ephemeral: false });
+      await interaction.reply({ embeds: [embed], flags: 0 });
     } catch (error) {
       console.error('[ERROR] Error in /finish:', error);
       const errorReply = { content: '❌ An error occurred while processing this command.', flags: InteractionResponseFlags.Ephemeral };
