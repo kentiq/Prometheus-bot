@@ -1122,6 +1122,151 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
+  // --- /whois2 ---
+  if (interaction.commandName === 'whois2') {
+    try {
+      await interaction.deferReply({ ephemeral: false });
+
+      const personId = interaction.options.getString('personne');
+      const identity = identities[personId];
+      if (!identity) {
+        return interaction.editReply({ content: "⚠️ Identité non trouvée. Fin de la transmission." });
+      }
+
+      const imagesDir = path.join(__dirname, '..', 'images');
+
+      // Vérifier que le dossier images existe
+      if (!fs.existsSync(imagesDir)) {
+        return interaction.editReply({ content: "⚠️ Dossier images non trouvé." });
+      }
+
+      const embeds = [];
+
+      // Applications
+      const applicationsPath = path.join(imagesDir, 'Applications.png');
+      if (fs.existsSync(applicationsPath)) {
+        const applicationsEmbed = new EmbedBuilder()
+          .setTitle('〚💻〛 Les applications que je maîtrise')
+          .setColor(0x5865F2);
+        
+        embeds.push(applicationsEmbed);
+        
+        const spacerEmbed1 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed1);
+
+        const applicationsImageEmbed = new EmbedBuilder()
+          .setImage(`attachment://Applications.png`)
+          .setColor(0x5865F2);
+        embeds.push(applicationsImageEmbed);
+
+        const spacerEmbed2 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed2);
+      }
+
+      // Auxiliary Skills
+      const auxiliaryPath = path.join(imagesDir, 'Auxiliary Skills.png');
+      if (fs.existsSync(auxiliaryPath)) {
+        const auxiliaryEmbed = new EmbedBuilder()
+          .setTitle('〚🛠️〛 Auxiliary Skills')
+          .setColor(0x5B6EE8);
+        
+        embeds.push(auxiliaryEmbed);
+        
+        const spacerEmbed3 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed3);
+
+        const auxiliaryImageEmbed = new EmbedBuilder()
+          .setImage(`attachment://Auxiliary Skills.png`)
+          .setColor(0x5B6EE8);
+        embeds.push(auxiliaryImageEmbed);
+
+        const spacerEmbed4 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed4);
+      }
+
+      // Frameworks
+      const frameworksPath = path.join(imagesDir, 'Frameworks.png');
+      if (fs.existsSync(frameworksPath)) {
+        const frameworksEmbed = new EmbedBuilder()
+          .setTitle('〚⚙️〛 Frameworks')
+          .setColor(0x6077DE);
+        
+        embeds.push(frameworksEmbed);
+        
+        const spacerEmbed5 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed5);
+
+        const frameworksImageEmbed = new EmbedBuilder()
+          .setImage(`attachment://Frameworks.png`)
+          .setColor(0x6077DE);
+        embeds.push(frameworksImageEmbed);
+
+        const spacerEmbed6 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed6);
+      }
+
+      // Languages
+      const languagesPath = path.join(imagesDir, 'Languages.png');
+      if (fs.existsSync(languagesPath)) {
+        const languagesEmbed = new EmbedBuilder()
+          .setTitle('〚🌐〛 Languages')
+          .setColor(0x5865F2)
+          .setFooter({ text: 'Prometheus • Protocole d\'Identification' })
+          .setTimestamp();
+        
+        embeds.push(languagesEmbed);
+        
+        const spacerEmbed7 = new EmbedBuilder()
+          .setDescription('\u200B')
+          .setColor(0x2f3136);
+        embeds.push(spacerEmbed7);
+
+        const languagesImageEmbed = new EmbedBuilder()
+          .setImage(`attachment://Languages.png`)
+          .setColor(0x5865F2);
+        embeds.push(languagesImageEmbed);
+      }
+
+      // Préparer les fichiers à attacher
+      const files = [];
+      if (fs.existsSync(applicationsPath)) {
+        files.push({ attachment: applicationsPath, name: 'Applications.png' });
+      }
+      if (fs.existsSync(auxiliaryPath)) {
+        files.push({ attachment: auxiliaryPath, name: 'Auxiliary Skills.png' });
+      }
+      if (fs.existsSync(frameworksPath)) {
+        files.push({ attachment: frameworksPath, name: 'Frameworks.png' });
+      }
+      if (fs.existsSync(languagesPath)) {
+        files.push({ attachment: languagesPath, name: 'Languages.png' });
+      }
+
+      await interaction.editReply({ embeds: embeds, files: files });
+
+    } catch (error) {
+      console.error('[ERROR] Error in /whois2:', error);
+      const errorReply = { content: '❌ Une erreur critique est survenue durant la transmission.' };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
   // --- /com ---
   if (interaction.commandName === 'com') {
     try {

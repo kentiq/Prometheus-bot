@@ -111,6 +111,16 @@ const commands = [
     ),
 
   new SlashCommandBuilder()
+    .setName('whois2')
+    .setDescription("Affiche les compétences techniques avec images.")
+    .addStringOption(option =>
+      option.setName('personne')
+        .setDescription('La personne dont afficher les compétences.')
+        .setRequired(true)
+        .addChoices(...identityChoices)
+    ),
+
+  new SlashCommandBuilder()
     .setName('setup-welcome')
     .setDescription('Sets up the welcome embed with automatic commission status updates.')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
