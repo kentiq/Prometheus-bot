@@ -2,7 +2,7 @@ name: Deploy Prometheus Bot
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   deploy:
@@ -10,45 +10,68 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
+
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Node
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 3. Install (test build)
+      # 3. Install dependencies (local, optional)
       - name: Install dependencies
         run: npm install
 
-      # 4. Extract metadata
-      - name: Extract commit info
-        id: meta
+      ###########################################################
+      #      A) CREATE LIVE MESSAGE (POST)
+      ###########################################################
+      - name: Create live deploy message
+        id: create_msg
         run: |
-          echo "COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
-          echo "COMMIT_AUTHOR=${GITHUB_ACTOR}" >> $GITHUB_ENV
+          echo "Sending initial deploy webhook..."
 
-      # 5. Webhook DETECTED
-      - name: Send DETECTED message
+          RESPONSE=$(curl -s -H "Content-Type: application/json" \
+            -X POST \
+            -d "{\"content\": \"🟦 **Deploy detected on Prometheus Bot**\", \"embeds\": [{\"title\": \"🔍 Initialisation du déploiement…\"}]}" \
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}")
+
+          # Extract message ID + token from response
+          MSG_ID=$(echo "$RESPONSE" | jq -r '.id')
+          WEBHOOK_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+
+          echo "msg_id=$MSG_ID" >> $GITHUB_OUTPUT
+          echo "webhook_token=$WEBHOOK_TOKEN" >> $GITHUB_OUTPUT
+
+      ###########################################################
+      #   Helper function to PATCH message at any step
+      ###########################################################
+      - name: Define PATCH helper
+        id: patch
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": [{
-                     \"title\": \"📡 Deploy detected on Prometheus Bot\",
-                     \"description\": \"A pipeline has been triggered.\",
-                     \"color\": 3447003,
-                     \"fields\": [
-                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true },
-                       { \"name\": \"Author\", \"value\": \"${COMMIT_AUTHOR}\", \"inline\": true }
-                     ],
-                     \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"
-               }]}" \
-               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+          patch () {
+            curl -s -X PATCH \
+              -H "Content-Type: application/json" \
+              -d "$1" \
+              "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+          }
+          echo "PATCH helper ready"
 
-      # 6. Deploy on VPS
+      ###########################################################
+      #   B) UPDATE MESSAGE — PULLING
+      ###########################################################
+      - name: Update message (Pulling)
+        run: |
+          curl -s -X PATCH \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\": [{\"title\": \"📥 Pulling repository…\",\"color\": 5793266}]}" \
+            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+
+      ###########################################################
+      #   C) DEPLOY OVER SSH
+      ###########################################################
       - name: Deploy on VPS via SSH
         uses: appleboy/ssh-action@v1.1.0
         with:
@@ -59,37 +82,26 @@ jobs:
             cd /var/www/kentiq-bot
             git pull origin main
             npm install --omit=dev
-            pm2 reload prometheus-bot || pm2 start Source/index.js --name prometheus-bot
+            pm2 reload prometheus-bot
 
-      # 7. SUCCESS
-      - name: Send SUCCESS message
-        if: success()
+      ###########################################################
+      #   D) UPDATE MESSAGE — SUCCESS
+      ###########################################################
+      - name: Update message (Success)
+        if: ${{ success() }}
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": [{
-                     \"title\": \"🚀 Deployment Success\",
-                     \"description\": \"Bot updated and PM2 reloaded successfully.\",
-                     \"color\": 5763719,
-                     \"fields\": [
-                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true },
-                       { \"name\": \"Duration\", \"value\": \"~20s\", \"inline\": true }
-                     ]
-               }]}" \
-               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+          curl -s -X PATCH \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\": [{\"title\": \"🟩 Deployment Success\",\"description\": \"Bot updated and PM2 reloaded successfully.\",\"color\": 5763719}]}" \
+            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
 
-      # 8. FAILURE
-      - name: Send FAILURE message
-        if: failure()
+      ###########################################################
+      #   E) UPDATE MESSAGE — FAILURE
+      ###########################################################
+      - name: Update message (Error)
+        if: ${{ failure() }}
         run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": [{
-                     \"title\": \"❌ Deployment Failed\",
-                     \"description\": \"An error occurred during the GitHub Actions pipeline.\",
-                     \"color\": 15548997,
-                     \"fields\": [
-                       { \"name\": \"Commit\", \"value\": \"\`${COMMIT_SHA}\`\", \"inline\": true }
-                     ]
-               }]}" \
-               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+          curl -s -X PATCH \
+            -H "Content-Type: application/json" \
+            -d "{\"embeds\": [{\"title\": \"❌ Deployment Failed\",\"description\": \"Error occurred during GitHub Actions pipeline.\",\"color\": 15548997}]}" \
+            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
