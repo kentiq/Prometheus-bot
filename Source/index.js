@@ -321,26 +321,26 @@ client.on('guildMemberAdd', async (member) => {
     
     // Créer un embed de bienvenue personnalisé
     const welcomeEmbed = new EmbedBuilder()
-      .setTitle('👋 Welcome to **Kentiq Universe**')
+      .setTitle('〚👋〛 Welcome to **Kentiq Universe**')
       .setDescription('Here\'s everything you need to know to get started:')
       .addFields(
         {
-          name: '📜 Rules',
+          name: '〚📜〛 Rules',
           value: 'Read the server rules: <#1400056802128826448>',
           inline: false
         },
         {
-          name: '💰 Payment Information',
+          name: '〚💰〛 Payment Information',
           value: 'Payment terms & billing info: <#1386358140462956624>',
           inline: false
         },
         {
-          name: '📂 Skills & Expertise',
+          name: '〚📂〛 Skills & Expertise',
           value: 'Discover my full skillset: <#1358465216806912060>',
           inline: false
         },
         {
-          name: '🎫 Tickets',
+          name: '〚🎫〛 Tickets',
           value: 'For commissions or project requests, open a ticket in <#1386352662563393578>',
           inline: false
         },
@@ -971,17 +971,17 @@ client.on('interactionCreate', async interaction => {
       const personId = interaction.options.getString('personne');
       const identity = identities[personId];
       if (!identity) {
-        return interaction.editReply({ content: "⚠️ Identité non trouvée. Fin de la transmission." });
+        return interaction.editReply({ content: "⚠️ Identity not found. Transmission terminated." });
       }
 
       // Vought-style build-up
-      await interaction.editReply({ content: "```[ ACCÈS AU PROFIL SUJET... ]```" });
+      await interaction.editReply({ content: "```[ ACCESSING SUBJECT PROFILE... ]```" });
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      await interaction.editReply({ content: "```[ AUTHENTIFICATION... ACCORDÉE. ]```" });
+      await interaction.editReply({ content: "```[ AUTHENTICATION... GRANTED. ]```" });
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      await interaction.editReply({ content: `\`\`\`[ CHARGEMENT FLUX DE DONNÉES... SUJET : ${identity.name.toUpperCase()} ]\`\`\`` });
+      await interaction.editReply({ content: `\`\`\`[ LOADING DATA STREAM... SUBJECT : ${identity.name.toUpperCase()} ]\`\`\`` });
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Parse presentation_markdown to extract Philosophy and Languages Spoken
@@ -1113,7 +1113,7 @@ client.on('interactionCreate', async interaction => {
 
     } catch (error) {
       console.error('[ERROR] Error in /whois:', error);
-      const errorReply = { content: '❌ Une erreur critique est survenue durant la transmission.' };
+      const errorReply = { content: '❌ A critical error occurred during transmission.' };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
@@ -1130,14 +1130,14 @@ client.on('interactionCreate', async interaction => {
       const personId = interaction.options.getString('personne');
       const identity = identities[personId];
       if (!identity) {
-        return interaction.editReply({ content: "⚠️ Identité non trouvée. Fin de la transmission." });
+        return interaction.editReply({ content: "⚠️ Identity not found. Transmission terminated." });
       }
 
       const imagesDir = path.join(__dirname, '..', 'images');
 
       // Vérifier que le dossier images existe
       if (!fs.existsSync(imagesDir)) {
-        return interaction.editReply({ content: "⚠️ Dossier images non trouvé." });
+        return interaction.editReply({ content: "⚠️ Images folder not found." });
       }
 
       const embeds = [];
@@ -1150,7 +1150,7 @@ client.on('interactionCreate', async interaction => {
         files.push(applicationsAttachment);
 
         const applicationsEmbed = new EmbedBuilder()
-          .setTitle('〚💻〛 Les applications que je maîtrise')
+          .setTitle('〚💻〛 Applications I Master')
           .setImage('attachment://Applications.png')
           .setColor(0x5865F2);
         
@@ -1217,14 +1217,14 @@ client.on('interactionCreate', async interaction => {
       }
 
       if (embeds.length === 0) {
-        return interaction.editReply({ content: "⚠️ Aucune image trouvée dans le dossier images." });
+        return interaction.editReply({ content: "⚠️ No images found in the images folder." });
       }
 
       await interaction.editReply({ embeds: embeds, files: files });
 
     } catch (error) {
       console.error('[ERROR] Error in /whois2:', error);
-      const errorReply = { content: '❌ Une erreur critique est survenue durant la transmission.' };
+      const errorReply = { content: '❌ A critical error occurred during transmission.' };
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {
@@ -1242,12 +1242,12 @@ client.on('interactionCreate', async interaction => {
       const channelId = config.channels?.commsStatus;
       
       if (!channelId) {
-        return interaction.editReply({ content: '⚠️ Le canal de statut des commissions n\'est pas configuré.' });
+        return interaction.editReply({ content: '⚠️ Commission status channel is not configured.' });
       }
 
       const channel = await client.channels.fetch(channelId);
       if (!channel) {
-        return interaction.editReply({ content: '⚠️ Le canal est introuvable.' });
+        return interaction.editReply({ content: '⚠️ Channel not found.' });
       }
 
       const newName = status === 'open'
@@ -1259,14 +1259,14 @@ client.on('interactionCreate', async interaction => {
       // Mettre à jour l'embed Welcome automatiquement
       await updateWelcomeEmbed(status);
 
-      await interaction.editReply({ content: `Le nom du canal a été mis à jour sur : **${newName}**. L'embed Welcome a été mis à jour automatiquement.` });
+      await interaction.editReply({ content: `Channel name has been updated to: **${newName}**. Welcome embed has been automatically updated.` });
 
     } catch (error) {
       console.error('[ERROR] Error in /com:', error);
       if (error.code === 50013) {
-        await interaction.editReply({ content: '❌ Erreur: Je n\'ai pas la permission de modifier le nom de ce salon. Veuillez vérifier mes permissions (`Gérer les salons`).' });
+        await interaction.editReply({ content: '❌ Error: I don\'t have permission to modify this channel\'s name. Please check my permissions (`Manage Channels`).' });
       } else {
-        const errorReply = { content: '❌ Une erreur est survenue lors du traitement de cette commande.' };
+        const errorReply = { content: '❌ An error occurred while processing this command.' };
         if (interaction.deferred || interaction.replied) {
           await interaction.editReply(errorReply);
         } else {
@@ -1434,23 +1434,23 @@ client.on('interactionCreate', async interaction => {
       
       await sendDeployUpdate({
         title: 'Prometheus Deployment Webhook',
-        description: 'Le webhook de monitoring fonctionne correctement.',
+        description: 'The monitoring webhook is working correctly.',
         color: 0x57F287
       });
 
       await interaction.editReply({ 
-        content: '✅ Webhook envoyé dans le channel de monitoring.' 
+        content: '✅ Webhook sent to monitoring channel.' 
       });
     } catch (error) {
       console.error('[ERROR] Error in /deploytest:', error);
       
       let errorMessage = '❌ An error occurred while processing this command.';
       if (error.code === 'ECONNABORTED') {
-        errorMessage = '❌ Timeout: Le webhook a pris trop de temps à répondre. Vérifiez DEPLOY_WEBHOOK_URL.';
+        errorMessage = '❌ Timeout: The webhook took too long to respond. Check DEPLOY_WEBHOOK_URL.';
       } else if (error.response) {
-        errorMessage = `❌ Erreur HTTP ${error.response.status}: ${error.response.statusText}`;
+        errorMessage = `❌ HTTP Error ${error.response.status}: ${error.response.statusText}`;
       } else if (error.request) {
-        errorMessage = '❌ Aucune réponse du webhook. Vérifiez DEPLOY_WEBHOOK_URL.';
+        errorMessage = '❌ No response from webhook. Check DEPLOY_WEBHOOK_URL.';
       }
 
       if (interaction.deferred || interaction.replied) {
@@ -1567,14 +1567,14 @@ client.on('interactionCreate', async interaction => {
       const memoryMB = (memoryUsage.heapUsed / 1024 / 1024).toFixed(2);
 
       const embed = new EmbedBuilder()
-        .setTitle('📊 Statistiques de Prometheus')
+        .setTitle('📊 Prometheus Statistics')
         .addFields(
           { name: '🤖 Bot', value: `**Tag:** ${client.user.tag}\n**ID:** ${client.user.id}\n**Version:** 1.1.0`, inline: true },
-          { name: '🌐 Serveur', value: `**Nom:** ${interaction.guild.name}\n**Membres:** ${interaction.guild.memberCount}\n**Salons:** ${interaction.guild.channels.cache.size}`, inline: true },
+          { name: '🌐 Server', value: `**Name:** ${interaction.guild.name}\n**Members:** ${interaction.guild.memberCount}\n**Channels:** ${interaction.guild.channels.cache.size}`, inline: true },
           { name: '⏱️ Uptime', value: uptimeString, inline: false },
-          { name: '💾 Mémoire', value: `${memoryMB} MB`, inline: true },
-          { name: '📦 Archives', value: `**Assets:** ${Object.keys(assets).length}\n**Clients:** ${Object.keys(clients).length}\n**Collabs:** ${Object.keys(collabs).length}\n**Identités:** ${Object.keys(identities).length}`, inline: true },
-          { name: '🌐 Latence', value: `${Math.round(client.ws.ping)}ms`, inline: true }
+          { name: '💾 Memory', value: `${memoryMB} MB`, inline: true },
+          { name: '📦 Archives', value: `**Assets:** ${Object.keys(assets).length}\n**Clients:** ${Object.keys(clients).length}\n**Collabs:** ${Object.keys(collabs).length}\n**Identities:** ${Object.keys(identities).length}`, inline: true },
+          { name: '🌐 Latency', value: `${Math.round(client.ws.ping)}ms`, inline: true }
         )
         .setColor(0x00bcd4)
         .setFooter({ text: 'Prometheus • System Statistics' })
@@ -1717,7 +1717,7 @@ client.on('interactionCreate', async interaction => {
       }
 
       if (results.length === 0) {
-        return interaction.editReply({ content: `❌ Aucun résultat trouvé pour "${query}".` });
+        return interaction.editReply({ content: `❌ No results found for "${query}".` });
       }
 
       const resultList = results.slice(0, 20).map((result, index) => {
@@ -1726,11 +1726,11 @@ client.on('interactionCreate', async interaction => {
       }).join('\n');
 
       const embed = new EmbedBuilder()
-        .setTitle(`🔍 Résultats de recherche (${results.length})`)
+        .setTitle(`🔍 Search Results (${results.length})`)
         .setDescription(resultList)
-        .addFields({ name: '💡 Astuce', value: `Utilisez \`/present ${results[0].id}\` ou \`/client ${results[0].id}\` pour voir les détails.`, inline: false })
+        .addFields({ name: '💡 Tip', value: `Use \`/present ${results[0].id}\` or \`/client ${results[0].id}\` to see details.`, inline: false })
         .setColor(0x00bcd4)
-        .setFooter({ text: `Recherche: "${query}"` })
+        .setFooter({ text: `Search: "${query}"` })
         .setTimestamp();
 
       await interaction.editReply({ embeds: [embed] });
@@ -1750,7 +1750,7 @@ client.on('interactionCreate', async interaction => {
     // Double vérification des permissions
     if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
       console.warn(`[WARN] Unauthorized /reload attempt by ${interaction.user.tag} (${interaction.user.id})`);
-      return interaction.reply({ content: '❌ Vous devez être administrateur pour utiliser cette commande.', ephemeral: true });
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
     }
 
     try {
@@ -1778,14 +1778,14 @@ client.on('interactionCreate', async interaction => {
       Object.assign(identities, newIdentities);
 
       const embed = new EmbedBuilder()
-        .setTitle('✅ Données rechargées')
-        .setDescription('Tous les fichiers JSON ont été rechargés avec succès.')
+        .setTitle('✅ Data Reloaded')
+        .setDescription('All JSON files have been reloaded successfully.')
         .addFields(
           { name: '📦 Assets', value: `${Object.keys(assets).length}`, inline: true },
           { name: '💼 Clients', value: `${Object.keys(clients).length}`, inline: true },
           { name: '🤝 Collabs', value: `${Object.keys(collabs).length}`, inline: true },
-          { name: '📚 Canaux', value: `${Object.keys(channels).length}`, inline: true },
-          { name: '👤 Identités', value: `${Object.keys(identities).length}`, inline: true }
+          { name: '📚 Channels', value: `${Object.keys(channels).length}`, inline: true },
+          { name: '👤 Identities', value: `${Object.keys(identities).length}`, inline: true }
         )
         .setColor(0x2ecc71)
         .setTimestamp();
@@ -1793,7 +1793,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[ERROR] Error in /reload:', error);
-      await interaction.editReply({ content: '❌ Erreur lors du rechargement des données.' });
+      await interaction.editReply({ content: '❌ Error while reloading data.' });
     }
   }
 
@@ -1802,7 +1802,7 @@ client.on('interactionCreate', async interaction => {
     // Double vérification des permissions
     if (!interaction.member?.permissions?.has(PermissionFlagsBits.Administrator)) {
       console.warn(`[WARN] Unauthorized /backup attempt by ${interaction.user.tag} (${interaction.user.id})`);
-      return interaction.reply({ content: '❌ Vous devez être administrateur pour utiliser cette commande.', ephemeral: true });
+      return interaction.reply({ content: '❌ You must be an administrator to use this command.', ephemeral: true });
     }
 
     try {
@@ -1829,10 +1829,10 @@ client.on('interactionCreate', async interaction => {
       }
 
       const embed = new EmbedBuilder()
-        .setTitle('💾 Sauvegarde créée')
-        .setDescription(`Sauvegarde créée avec succès dans le dossier \`backups/\`.`)
+        .setTitle('💾 Backup Created')
+        .setDescription(`Backup created successfully in the \`backups/\` folder.`)
         .addFields(
-          { name: '📁 Fichiers sauvegardés', value: backupFiles.map(f => `• ${f}`).join('\n') || 'Aucun', inline: false },
+          { name: '📁 Saved Files', value: backupFiles.map(f => `• ${f}`).join('\n') || 'None', inline: false },
           { name: '🕐 Timestamp', value: timestamp, inline: false }
         )
         .setColor(0x2ecc71)
@@ -1841,7 +1841,7 @@ client.on('interactionCreate', async interaction => {
       await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error('[ERROR] Error in /backup:', error);
-      await interaction.editReply({ content: '❌ Erreur lors de la création de la sauvegarde.' });
+      await interaction.editReply({ content: '❌ Error while creating backup.' });
     }
   }
 });
