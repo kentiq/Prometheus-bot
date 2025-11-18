@@ -31,6 +31,21 @@ function loadJSONFile(filename) {
 }
 
 /**
+ * Sauvegarde un objet JSON dans le dossier Configuration
+ * @param {string} filename - Nom du fichier JSON
+ * @param {Object} data - Données à sauvegarder
+ */
+function saveJSONFile(filename, data) {
+  try {
+    const filePath = path.join(__dirname, '..', 'Configuration', filename);
+
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error(`[ERROR] Error saving ${filename}:`, error.message);
+  }
+}
+
+/**
  * Sanitize les messages de log pour masquer les tokens Discord
  * @param {string} message - Message à sanitizer
  * @returns {string} Message avec tokens masqués
@@ -88,11 +103,77 @@ const collabs = loadJSONFile('workwith.json');
 const channels = loadJSONFile('channels.json');
 const clients = loadJSONFile('clients.json');
 const identities = loadJSONFile('identities.json');
+const kCredits = loadJSONFile('credits.json');
+
+// Tiers & K-Crédits (structure simplifiée V1)
+const INVITE_TIERS = [
+  { id: 'associate',      name: 'Associate',      minInvites: 2,   multiplier: 1.00 },
+  { id: 'contributor',    name: 'Contributor',    minInvites: 5,   multiplier: 1.00 },
+  { id: 'advocate',       name: 'Advocate',       minInvites: 10,  multiplier: 1.05 },
+  { id: 'partner',        name: 'Partner',        minInvites: 15,  multiplier: 1.07 },
+  { id: 'senior_partner', name: 'Senior Partner', minInvites: 20,  multiplier: 1.10 },
+  { id: 'ambassador',     name: 'Ambassador',     minInvites: 30,  multiplier: 1.12 },
+  { id: 'strategist',     name: 'Strategist',     minInvites: 40,  multiplier: 1.15 },
+  { id: 'executive',      name: 'Executive',      minInvites: 55,  multiplier: 1.18 },
+  { id: 'director',       name: 'Director',       minInvites: 75,  multiplier: 1.20 },
+  { id: 'architect',      name: 'Architect',      minInvites: 100, multiplier: 1.25 }
+];
+
+/**
+ * Retourne le Tier correspondant au nombre d'invites
+ * @param {number} invites
+ * @returns {{id: string, name: string, minInvites: number, multiplier: number}|null}
+ */
+function getTierForInvites(invites) {
+  let currentTier = null;
+
+  for (const tier of INVITE_TIERS) {
+    if (invites >= tier.minInvites) {
+      if (!currentTier || tier.minInvites > currentTier.minInvites) {
+        currentTier = tier;
+      }
+    }
+  }
+
+  return currentTier;
+}
+
+/**
+ * Applique +1 invite et +K-Crédits à un utilisateur
+ * @param {string} userId
+ */
+function applyInviteReward(userId) {
+  if (!userId) return;
+
+  const record = kCredits[userId] || {
+    invites: 0,
+    kcredits: 0,
+    tierId: null
+  };
+
+  record.invites += 1;
+
+  const tier = getTierForInvites(record.invites);
+  const multiplier = tier?.multiplier ?? 1.0;
+
+  const baseCreditsGain = 1;
+  const creditsGain = baseCreditsGain * multiplier;
+
+  record.kcredits = parseFloat((record.kcredits + creditsGain).toFixed(2));
+  record.tierId = tier ? tier.id : null;
+
+  kCredits[userId] = record;
+
+  saveJSONFile('credits.json', kCredits);
+}
 
 // Rôles & canaux système
 const MEMBER_ROLE_ID     = '1440194456476450886';
 const UNVERIFIED_ROLE_ID = '1440194557995122748';
 const ACCESS_LOG_CHANNEL_ID = '1440200183655698432';
+
+// Cache des invitations par serveur (code → uses)
+const guildInvitesCache = new Map();
 
 const client = new Client({ 
   intents: [
@@ -108,6 +189,26 @@ const client = new Client({
     Partials.Reaction
   ]
 });
+
+/**
+ * Met en cache les invitations d'un serveur
+ * @param {import('discord.js').Guild} guild
+ */
+async function cacheGuildInvites(guild) {
+  try {
+    const invites = await guild.invites.fetch();
+
+    const codeUsesMap = new Map();
+
+    invites.forEach(invite => {
+      codeUsesMap.set(invite.code, invite.uses ?? 0);
+    });
+
+    guildInvitesCache.set(guild.id, codeUsesMap);
+  } catch (error) {
+    console.error('[ERROR] Failed to cache invites for guild:', guild.id, error);
+  }
+}
 
 /**
  * Détecte le statut actuel des commissions en lisant le nom du canal
@@ -303,6 +404,16 @@ client.once('clientReady', async () => {
   } catch (error) {
     console.warn(`[WARN] Could not update welcome embed on startup:`, error.message);
   }
+
+  // Mettre en cache les invitations de tous les serveurs
+  try {
+    for (const [, guild] of client.guilds.cache) {
+      await cacheGuildInvites(guild);
+    }
+    console.log('[INFO] Initial guild invites cache loaded.');
+  } catch (error) {
+    console.error('[ERROR] Failed to load initial invites cache:', error);
+  }
 });
 
 // Gestion de la reconnexion automatique
@@ -343,6 +454,34 @@ client.on('guildMemberAdd', async (member) => {
     
     // Attendre un peu pour éviter les problèmes de cache
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Crédits d'invitation pour le parrain (si détectable)
+    try {
+      const guild = member.guild;
+      const previousInvites = guildInvitesCache.get(guild.id);
+
+      const newInvites = await guild.invites.fetch();
+
+      let usedInvite = null;
+
+      newInvites.forEach(invite => {
+        const previousUses = previousInvites?.get(invite.code) ?? 0;
+        const currentUses = invite.uses ?? 0;
+
+        if (currentUses > previousUses) {
+          usedInvite = invite;
+        }
+      });
+
+      await cacheGuildInvites(guild);
+
+      if (usedInvite && usedInvite.inviter) {
+        applyInviteReward(usedInvite.inviter.id);
+        console.log(`[INVITES] Credited invite to ${usedInvite.inviter.tag} (${usedInvite.inviter.id})`);
+      }
+    } catch (inviteError) {
+      console.error('[ERROR] Failed to process invite credits on member join:', inviteError);
+    }
     
     // Créer un embed de bienvenue personnalisé
     const welcomeEmbed = new EmbedBuilder()
@@ -2417,6 +2556,59 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
+  // --- /credits ---
+  if (interaction.commandName === 'credits') {
+    try {
+      const userId = interaction.user.id;
+      const record = kCredits[userId] || { invites: 0, kcredits: 0, tierId: null };
+
+      const tier = getTierForInvites(record.invites || 0);
+      const multiplier = tier?.multiplier ?? 1.0;
+
+      const embed = new EmbedBuilder()
+        .setTitle('〚₭〛 K-Credits — Invite Profile')
+        .setDescription('Current status of your invite contributions and K-Credits inside Kentiq Universe.')
+        .addFields(
+          {
+            name: 'Invites valides',
+            value: `\`${record.invites || 0}\``,
+            inline: true
+          },
+          {
+            name: 'Solde K-Crédits',
+            value: `\`${(record.kcredits || 0).toFixed(2)} ₭\``,
+            inline: true
+          },
+          {
+            name: 'Tier',
+            value: tier ? `${tier.name} (x${multiplier.toFixed(2)})` : 'Aucun tier atteint pour le moment.',
+            inline: false
+          }
+        )
+        .setColor(0x00bcd4)
+        .setFooter({ text: 'Kentiq Universe • Invite Program' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /credits:', error);
+
+      const errorReply = {
+        content: '❌ An error occurred while retrieving your credits.',
+        flags: MessageFlags.Ephemeral
+      };
+
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
   // --- /setup-access ---
   if (interaction.commandName === 'setup-access') {
     const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
@@ -2454,6 +2646,84 @@ client.on('interactionCreate', async interaction => {
 
       const errorReply = {
         content: '❌ An error occurred while creating the access panel.',
+        flags: MessageFlags.Ephemeral
+      };
+
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
+  // --- /setup-invite-program ---
+  if (interaction.commandName === 'setup-invite-program') {
+    const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
+
+    if (!isAdmin) {
+      return interaction.reply({
+        content: '❌ You must be an administrator to use this command.',
+        flags: MessageFlags.Ephemeral
+      });
+    }
+
+    try {
+      const embed = new EmbedBuilder()
+        .setTitle('〚₭〛 Kentiq Invite Program — V1')
+        .setDescription(
+          'Kentiq Universe rewards members who help the ecosystem grow in a **clean, long-term, and premium** way.\n\n' +
+          '**How it works:**\n' +
+          '• Each **valid invite** → generates **K-Crédits** (internal currency)\n' +
+          '• Your **total invites** → determine your **Tier corporate**\n' +
+          '• Your **Tier** → applique un multiplicateur sur les K-Crédits futurs\n'
+        )
+        .addFields(
+          {
+            name: 'Tiers (invites cumulées)',
+            value:
+              '• I  — Associate      → 2 invites (x1.00)\n' +
+              '• II — Contributor    → 5 invites (x1.00)\n' +
+              '• III — Advocate      → 10 invites (x1.05)\n' +
+              '• IV — Partner        → 15 invites (x1.07)\n' +
+              '• V  — Senior Partner → 20 invites (x1.10)\n' +
+              '• VI — Ambassador     → 30 invites (x1.12)\n' +
+              '• VII — Strategist    → 40 invites (x1.15)\n' +
+              '• VIII — Executive    → 55 invites (x1.18)\n' +
+              '• IX — Director       → 75 invites (x1.20)\n' +
+              '• X  — Architect      → 100 invites (x1.25)',
+            inline: false
+          },
+          {
+            name: 'Utilisation',
+            value:
+              '• Les invites restent une **métrique sociale** (prestige, Tiers)\n' +
+              '• Les K-Crédits sont une **monnaie interne** pour la K‑Shop (services, accès, perks)\n' +
+              '• Tu peux consulter ton profil avec `/credits` (invites, K‑Crédits, Tier)',
+            inline: false
+          },
+          {
+            name: 'Règles anti-abus (extrait)',
+            value:
+              '• Pas de faux comptes, pas d’alts\n' +
+              '• Pas d’invites via spam ou DM de masse\n' +
+              '• Les invites invalides ou frauduleuses ne comptent pas\n' +
+              '• Kentiq se réserve le droit d’ajuster les invites et Tiers en cas d’abus',
+            inline: false
+          }
+        )
+        .setColor(0x00bcd4)
+        .setFooter({ text: 'Kentiq Universe • Invite Program V1' })
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [embed]
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /setup-invite-program:', error);
+
+      const errorReply = {
+        content: '❌ An error occurred while creating the invite program panel.',
         flags: MessageFlags.Ephemeral
       };
 

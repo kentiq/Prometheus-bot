@@ -257,6 +257,15 @@ const commands = [
   new SlashCommandBuilder()
   .setName('setup-access')
   .setDescription('Configure le panneau d’accès (bouton de validation de lecture).')
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+  .setName('credits')
+  .setDescription('Affiche vos invitations valides et votre solde de K-Crédits.'),
+
+  new SlashCommandBuilder()
+  .setName('setup-invite-program')
+  .setDescription('Envoie le panneau de présentation du K-Invite Program.')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ].map(command => command.toJSON());
 
