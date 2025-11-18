@@ -558,7 +558,10 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
-  if (!interaction.isChatInputCommand()) return;
+  // Ignorer les autres types d'interactions (sauf commandes + menus déroulants)
+  if (!interaction.isChatInputCommand() && !interaction.isStringSelectMenu()) {
+    return;
+  }
 
   // --- /setup-welcome ---
   if (interaction.commandName === 'setup-welcome') {
