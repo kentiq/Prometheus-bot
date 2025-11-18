@@ -1,0 +1,65 @@
+name: Deploy Prometheus Bot
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    name: Auto Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 3. Install dependencies (optional for testing)
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Notify Discord – Déploiement détecté
+      - name: Send DETECTED message
+        run: |
+          echo "Sending DETECTED webhook..."
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"🟦 **Deploy detected on Prometheus Bot**\"}" \
+               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+
+      # 5. Deploy on VPS
+      - name: Deploy on VPS via SSH
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/kentiq-bot
+            git pull origin main
+            npm install --omit=dev
+            pm2 reload prometheus-bot
+
+      # 6. Notify Discord – Déploiement réussi
+      - name: Send SUCCESS message
+        if: ${{ success() }}
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"embeds\": [{\"title\": \"🚀 Deployment Success\",\"description\": \"Le bot a été mis à jour et PM2 a rechargé correctement.\",\"color\": 5763719}]}" \
+               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+
+      # 7. Notify Discord – Déploiement échoué
+      - name: Send FAILURE message
+        if: ${{ failure() }}
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"embeds\": [{\"title\": \"❌ Deployment Failed\",\"description\": \"Une erreur est survenue pendant le pipeline GitHub Actions.\",\"color\": 15548997}]}" \
+               "${{ secrets.DEPLOY_WEBHOOK_URL }}"
