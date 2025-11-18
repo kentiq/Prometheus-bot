@@ -684,16 +684,35 @@ client.on('interactionCreate', async interaction => {
           return interaction.reply({ content: 'Error: The ticket category is misconfigured. Please contact an admin.', flags: MessageFlags.Ephemeral });
       }
 
-      const newChannel = await interaction.guild.channels.create({
-        name: ticketChannelName,
-        type: ChannelType.GuildText,
-        parent: category,
-        permissionOverwrites: [
-          { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
-          { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles] },
-          { id: ticketsConfig.supportRoleId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.AttachFiles] },
-        ],
-      });
+      let newChannel;
+
+      try {
+        newChannel = await interaction.guild.channels.create({
+          name: ticketChannelName,
+          type: ChannelType.GuildText,
+          parent: category,
+          permissionOverwrites: [
+            { id: interaction.guild.id, deny: [PermissionFlagsBits.ViewChannel] },
+            { id: interaction.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.AttachFiles] },
+            { id: ticketsConfig.supportRoleId, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.AttachFiles] },
+            { id: interaction.client.user.id, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.AttachFiles] }
+          ],
+        });
+      } catch (error) {
+        console.error('[ERROR] Failed to create ticket channel:', error);
+
+        if (error.code === 50013) {
+          return interaction.reply({
+            content: '❌ I don\'t have permission to create channels in the configured ticket category. Please ensure my role has **Manage Channels** on that category.',
+            flags: MessageFlags.Ephemeral
+          });
+        }
+
+        return interaction.reply({
+          content: '❌ An unexpected error occurred while creating the ticket channel.',
+          flags: MessageFlags.Ephemeral
+        });
+      }
 
       const welcomeEmbed = new EmbedBuilder()
         .setTitle(`Ticket from ${interaction.user.username}`)
@@ -2567,21 +2586,21 @@ client.on('interactionCreate', async interaction => {
 
       const embed = new EmbedBuilder()
         .setTitle('〚₭〛 K-Credits — Invite Profile')
-        .setDescription('Current status of your invite contributions and K-Credits inside Kentiq Universe.')
+        .setDescription('Current status of your invite contributions and K-Credits inside **Kentiq Universe**.')
         .addFields(
           {
-            name: 'Invites valides',
+            name: 'Valid invites',
             value: `\`${record.invites || 0}\``,
             inline: true
           },
           {
-            name: 'Solde K-Crédits',
+            name: 'K-Credits balance',
             value: `\`${(record.kcredits || 0).toFixed(2)} ₭\``,
             inline: true
           },
           {
             name: 'Tier',
-            value: tier ? `${tier.name} (x${multiplier.toFixed(2)})` : 'Aucun tier atteint pour le moment.',
+            value: tier ? `${tier.name} (x${multiplier.toFixed(2)})` : 'No Tier reached yet.',
             inline: false
           }
         )
@@ -2672,43 +2691,43 @@ client.on('interactionCreate', async interaction => {
       const embed = new EmbedBuilder()
         .setTitle('〚₭〛 Kentiq Invite Program — V1')
         .setDescription(
-          'Kentiq Universe rewards members who help the ecosystem grow in a **clean, long-term, and premium** way.\n\n' +
+          'Kentiq Universe rewards members who help the ecosystem grow in a **clean, long-term, premium** way.\n\n' +
           '**How it works:**\n' +
-          '• Each **valid invite** → generates **K-Crédits** (internal currency)\n' +
-          '• Your **total invites** → determine your **Tier corporate**\n' +
-          '• Your **Tier** → applique un multiplicateur sur les K-Crédits futurs\n'
+          '• Each **valid invite** → generates **K-Credits** (internal currency)\n' +
+          '• Your **total invites** → determine your **corporate Tier**\n' +
+          '• Your **Tier** → applies a multiplier on future K-Credits\n'
         )
         .addFields(
           {
-            name: 'Tiers (invites cumulées)',
+            name: 'Tiers (cumulative invites)',
             value:
-              '• I  — Associate      → 2 invites (x1.00)\n' +
-              '• II — Contributor    → 5 invites (x1.00)\n' +
-              '• III — Advocate      → 10 invites (x1.05)\n' +
-              '• IV — Partner        → 15 invites (x1.07)\n' +
-              '• V  — Senior Partner → 20 invites (x1.10)\n' +
-              '• VI — Ambassador     → 30 invites (x1.12)\n' +
-              '• VII — Strategist    → 40 invites (x1.15)\n' +
-              '• VIII — Executive    → 55 invites (x1.18)\n' +
-              '• IX — Director       → 75 invites (x1.20)\n' +
-              '• X  — Architect      → 100 invites (x1.25)',
+              '• 〚I〛   Associate      → 2 invites (x1.00)\n' +
+              '• 〚II〛  Contributor    → 5 invites (x1.00)\n' +
+              '• 〚III〛 Advocate      → 10 invites (x1.05)\n' +
+              '• 〚IV〛  Partner        → 15 invites (x1.07)\n' +
+              '• 〚V〛   Senior Partner → 20 invites (x1.10)\n' +
+              '• 〚VI〛  Ambassador     → 30 invites (x1.12)\n' +
+              '• 〚VII〛 Strategist    → 40 invites (x1.15)\n' +
+              '• 〚VIII〛Executive    → 55 invites (x1.18)\n' +
+              '• 〚IX〛  Director       → 75 invites (x1.20)\n' +
+              '• 〚X〛   Architect      → 100 invites (x1.25)',
             inline: false
           },
           {
-            name: 'Utilisation',
+            name: 'Usage',
             value:
-              '• Les invites restent une **métrique sociale** (prestige, Tiers)\n' +
-              '• Les K-Crédits sont une **monnaie interne** pour la K‑Shop (services, accès, perks)\n' +
-              '• Tu peux consulter ton profil avec `/credits` (invites, K‑Crédits, Tier)',
+              '• Invites stay a **social metric** (prestige, Tiers)\n' +
+              '• K-Credits are the **internal currency** used in the K‑Shop (services, access, perks)\n' +
+              '• You can check your profile with `/credits` (invites, K-Credits, Tier)',
             inline: false
           },
           {
-            name: 'Règles anti-abus (extrait)',
+            name: 'Anti-abuse rules (excerpt)',
             value:
-              '• Pas de faux comptes, pas d’alts\n' +
-              '• Pas d’invites via spam ou DM de masse\n' +
-              '• Les invites invalides ou frauduleuses ne comptent pas\n' +
-              '• Kentiq se réserve le droit d’ajuster les invites et Tiers en cas d’abus',
+              '• No fake accounts, no alts\n' +
+              '• No invites via spam or mass DM\n' +
+              '• Invalid or fraudulent invites do not count\n' +
+              '• Kentiq reserves the right to adjust invites and Tiers in case of abuse',
             inline: false
           }
         )
