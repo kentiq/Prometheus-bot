@@ -630,6 +630,99 @@ client.on('interactionCreate', async interaction => {
         
         await interaction.message.delete();
     }
+
+    // --- Welcome access button ---
+    if (interaction.customId === 'welcome_access_confirm') {
+      try {
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+        const guild = interaction.guild;
+        const member = interaction.member;
+
+        if (!guild || !member || member.user.bot) {
+          return interaction.editReply({ content: '❌ This button can only be used inside the server.' });
+        }
+
+        let addedMemberRole = false;
+        let removedUnverifiedRole = false;
+        let errorDetails = null;
+
+        try {
+          const memberRole =
+            guild.roles.cache.get(MEMBER_ROLE_ID) ||
+            await guild.roles.fetch(MEMBER_ROLE_ID).catch(() => null);
+
+          if (memberRole && !member.roles.cache.has(memberRole.id)) {
+            await member.roles.add(memberRole);
+            addedMemberRole = true;
+          }
+
+          const unverifiedRole =
+            guild.roles.cache.get(UNVERIFIED_ROLE_ID) ||
+            await guild.roles.fetch(UNVERIFIED_ROLE_ID).catch(() => null);
+
+          if (unverifiedRole && member.roles.cache.has(unverifiedRole.id)) {
+            await member.roles.remove(unverifiedRole);
+            removedUnverifiedRole = true;
+          }
+        } catch (roleError) {
+          errorDetails = roleError;
+          console.error('[ERROR] Failed to update roles on welcome access button:', roleError);
+        }
+
+        try {
+          const logChannel = await client.channels.fetch(ACCESS_LOG_CHANNEL_ID).catch(() => null);
+
+          if (logChannel && logChannel.isTextBased && logChannel.isTextBased()) {
+            const lines = [
+              `✅ **Access granted via welcome button**`,
+              `• User  : ${interaction.user.tag} (${interaction.user.id})`,
+              `• Member: ${addedMemberRole ? 'role added' : 'already had role or missing role'}`,
+              `• Unverified: ${removedUnverifiedRole ? 'role removed' : 'no unverified role to remove'}`
+            ];
+
+            if (errorDetails) {
+              lines.push(`• Error: \`${errorDetails.message || 'Unknown error'}\``);
+            }
+
+            await logChannel.send(lines.join('\n'));
+          }
+        } catch (logError) {
+          console.error('[ERROR] Failed to log access event (button):', logError);
+        }
+
+        const summaryLines = [];
+
+        if (addedMemberRole) {
+          summaryLines.push('✅ You have been granted access to the server.');
+        } else {
+          summaryLines.push('ℹ️ You already had member access.');
+        }
+
+        if (removedUnverifiedRole) {
+          summaryLines.push('🔓 Your unverified status has been removed.');
+        }
+
+        if (!addedMemberRole && !removedUnverifiedRole) {
+          summaryLines.push('Nothing changed for your roles.');
+        }
+
+        await interaction.editReply({ content: summaryLines.join('\n') });
+      } catch (error) {
+        console.error('[ERROR] Error in welcome access button handler:', error);
+
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply({
+            content: '❌ An error occurred while processing your access confirmation.'
+          }).catch(() => {});
+        } else {
+          await interaction.reply({
+            content: '❌ An error occurred while processing your access confirmation.',
+            flags: MessageFlags.Ephemeral
+          }).catch(() => {});
+        }
+      }
+    }
   }
 
   // Ignorer les autres types d'interactions (sauf commandes + menus déroulants)
@@ -2316,6 +2409,54 @@ client.on('interactionCreate', async interaction => {
     } catch (error) {
       console.error('[ERROR] Error in /finish:', error);
       const errorReply = { content: '❌ An error occurred while processing this command.', flags: MessageFlags.Ephemeral };
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
+  // --- /setup-access ---
+  if (interaction.commandName === 'setup-access') {
+    const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
+
+    if (!isAdmin) {
+      return interaction.reply({
+        content: '❌ You must be an administrator to use this command.',
+        flags: MessageFlags.Ephemeral
+      });
+    }
+
+    try {
+      const embed = new EmbedBuilder()
+        .setTitle('〚✅〛 Welcome Acknowledgement')
+        .setDescription(
+          'By confirming this, you acknowledge that you have read and understood the welcome information and rules.\n\n' +
+          'Click the button below to unlock member access to the server.'
+        )
+        .setColor(0x5865F2);
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('welcome_access_confirm')
+          .setLabel('I have read and understood')
+          .setEmoji('<a:Check:926902236691460126>')
+          .setStyle(ButtonStyle.Success)
+      );
+
+      await interaction.reply({
+        embeds: [embed],
+        components: [row]
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /setup-access:', error);
+
+      const errorReply = {
+        content: '❌ An error occurred while creating the access panel.',
+        flags: MessageFlags.Ephemeral
+      };
+
       if (interaction.deferred || interaction.replied) {
         await interaction.editReply(errorReply);
       } else {

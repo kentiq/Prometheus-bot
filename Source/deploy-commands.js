@@ -252,6 +252,11 @@ const commands = [
   new SlashCommandBuilder()
   .setName('member')
   .setDescription('Attribue le rôle membre à tous les membres du serveur.')
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+  .setName('setup-access')
+  .setDescription('Configure le panneau d’accès (bouton de validation de lecture).')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ].map(command => command.toJSON());
 
