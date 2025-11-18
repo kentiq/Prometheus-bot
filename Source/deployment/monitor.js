@@ -1,6 +1,10 @@
 // Source/deployment/monitor.js
 const { EmbedBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
+
+const MESSAGE_ID_FILE = path.join(__dirname, '..', '..', 'Configuration', 'deploy-message.json');
 
 /**
  * Gestion des messages de déploiement en temps réel
@@ -10,6 +14,65 @@ class DeploymentMonitor {
     this.client = client;
     this.message = null;
     this.channelId = process.env.MONITOR_CHANNEL;
+    this.loadMessageId();
+  }
+
+  /**
+   * Charge le message ID depuis le fichier
+   */
+  loadMessageId() {
+    try {
+      if (fs.existsSync(MESSAGE_ID_FILE)) {
+        const data = JSON.parse(fs.readFileSync(MESSAGE_ID_FILE, 'utf8'));
+        if (data.messageId && data.channelId) {
+          this.savedMessageId = data.messageId;
+          this.savedChannelId = data.channelId;
+        }
+      }
+    } catch (error) {
+      console.warn('[DeployMonitor] Could not load saved message ID:', error.message);
+    }
+  }
+
+  /**
+   * Sauvegarde le message ID dans un fichier
+   */
+  saveMessageId(messageId, channelId) {
+    try {
+      const data = { messageId, channelId, timestamp: Date.now() };
+      fs.writeFileSync(MESSAGE_ID_FILE, JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('[DeployMonitor] Could not save message ID:', error.message);
+    }
+  }
+
+  /**
+   * Récupère le message depuis Discord ou depuis le fichier sauvegardé
+   */
+  async getMessage() {
+    // Si on a déjà le message en mémoire, l'utiliser
+    if (this.message) {
+      return this.message;
+    }
+
+    // Sinon, essayer de le récupérer depuis Discord
+    if (this.savedMessageId && this.savedChannelId) {
+      try {
+        const channel = await this.client.channels.fetch(this.savedChannelId);
+        if (channel) {
+          this.message = await channel.messages.fetch(this.savedMessageId);
+          return this.message;
+        }
+      } catch (error) {
+        console.warn('[DeployMonitor] Could not fetch saved message:', error.message);
+        // Si le message n'existe plus, nettoyer le fichier
+        if (fs.existsSync(MESSAGE_ID_FILE)) {
+          fs.unlinkSync(MESSAGE_ID_FILE);
+        }
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -43,6 +106,7 @@ class DeploymentMonitor {
         .setFooter({ text: 'Prometheus Bot • Deployment Monitor' });
 
       this.message = await channel.send({ embeds: [embed] });
+      this.saveMessageId(this.message.id, channel.id);
       console.log(`[DeployMonitor] Deployment started for commit: ${commit}`);
     } catch (error) {
       console.error('[DeployMonitor] Error starting deployment:', error);
@@ -58,13 +122,14 @@ class DeploymentMonitor {
    */
   async updateStage(title, color = 0x5865F2, description = null) {
     try {
-      if (!this.message) {
+      const message = await this.getMessage();
+      if (!message) {
         console.warn('[DeployMonitor] No message to update');
         return;
       }
 
       // Récupérer l'embed existant ou créer un nouveau
-      const existingEmbed = this.message.embeds[0];
+      const existingEmbed = message.embeds[0];
       const embed = existingEmbed ? EmbedBuilder.from(existingEmbed) : new EmbedBuilder();
       
       // Préserver les champs existants (comme le commit hash)
@@ -82,7 +147,8 @@ class DeploymentMonitor {
         embed.setFields(existingFields);
       }
 
-      await this.message.edit({ embeds: [embed] });
+      await message.edit({ embeds: [embed] });
+      this.message = message; // Mettre à jour la référence
       console.log(`[DeployMonitor] Stage updated: ${title}`);
     } catch (error) {
       console.error('[DeployMonitor] Error updating stage:', error);
@@ -95,18 +161,20 @@ class DeploymentMonitor {
    */
   async deploymentSuccess() {
     try {
-      if (!this.message) {
+      const message = await this.getMessage();
+      if (!message) {
         console.warn('[DeployMonitor] No message to update');
         return;
       }
 
-      const embed = EmbedBuilder.from(this.message.embeds[0])
+      const embed = EmbedBuilder.from(message.embeds[0])
         .setTitle('🟩 Deployment Success')
         .setDescription('Le bot a été mis à jour et PM2 s\'est rechargé correctement.')
         .setColor(0x57F287)
         .setTimestamp();
 
-      await this.message.edit({ embeds: [embed] });
+      await message.edit({ embeds: [embed] });
+      this.message = message; // Mettre à jour la référence
       console.log('[DeployMonitor] Deployment marked as successful');
     } catch (error) {
       console.error('[DeployMonitor] Error marking deployment success:', error);
@@ -121,12 +189,13 @@ class DeploymentMonitor {
    */
   async deploymentFail(commit, errorMessage = null) {
     try {
-      if (!this.message) {
+      const message = await this.getMessage();
+      if (!message) {
         console.warn('[DeployMonitor] No message to update');
         return;
       }
 
-      const existingEmbed = this.message.embeds[0];
+      const existingEmbed = message.embeds[0];
       const embed = existingEmbed ? EmbedBuilder.from(existingEmbed) : new EmbedBuilder();
       
       embed.setTitle('❌ Deployment Failed')
@@ -148,7 +217,8 @@ class DeploymentMonitor {
         embed.setFields(existingFields);
       }
 
-      await this.message.edit({ embeds: [embed] });
+      await message.edit({ embeds: [embed] });
+      this.message = message; // Mettre à jour la référence
       console.log(`[DeployMonitor] Deployment marked as failed for commit: ${commit}`);
     } catch (error) {
       console.error('[DeployMonitor] Error marking deployment failure:', error);
