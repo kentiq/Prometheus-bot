@@ -1920,6 +1920,9 @@ client.on('interactionCreate', async interaction => {
 
   // --- Handle select menu interactions ---
   if (interaction.isStringSelectMenu() && interaction.customId === 'skill_select') {
+    // Acknowledge l'interaction immédiatement pour éviter l'erreur
+    await interaction.deferUpdate();
+    
     try {
       const selectedValue = interaction.values[0];
       let embed;
@@ -2077,7 +2080,7 @@ client.on('interactionCreate', async interaction => {
           .setTimestamp();
       } else {
         // Valeur non reconnue
-        await interaction.update({ components: [] }).catch(() => {});
+        await interaction.editReply({ components: [] }).catch(() => {});
         await interaction.followUp({ 
           content: '❌ Unknown skill selected.', 
           flags: MessageFlags.Ephemeral 
@@ -2087,7 +2090,8 @@ client.on('interactionCreate', async interaction => {
 
       // Si on a un embed, envoyer en DM
       if (embed) {
-        await interaction.update({ components: [] });
+        // Retirer le menu déroulant du message
+        await interaction.editReply({ components: [] });
         
         try {
           // Envoyer l'embed en DM
@@ -2110,12 +2114,8 @@ client.on('interactionCreate', async interaction => {
       console.error('[ERROR] Error in skill select menu:', error);
       const errorReply = { content: '❌ An error occurred while processing your selection.', flags: MessageFlags.Ephemeral };
       try {
-        if (interaction.deferred || interaction.replied) {
-          await interaction.followUp(errorReply).catch(() => {});
-        } else {
-          await interaction.update({ components: [] }).catch(() => {});
-          await interaction.followUp(errorReply).catch(() => {});
-        }
+        await interaction.editReply({ components: [] }).catch(() => {});
+        await interaction.followUp(errorReply).catch(() => {});
       } catch (err) {
         console.error('[ERROR] Failed to send error reply:', err);
       }
