@@ -84,14 +84,18 @@ class DeploymentMonitor {
     try {
       if (!this.channelId) {
         console.error('[DeployMonitor] MONITOR_CHANNEL is missing in .env');
+        console.error('[DeployMonitor] Please add MONITOR_CHANNEL=your_channel_id to your .env file');
         return;
       }
 
+      console.log(`[DeployMonitor] Fetching channel ${this.channelId}...`);
       const channel = await this.client.channels.fetch(this.channelId);
       if (!channel) {
         console.error(`[DeployMonitor] Channel ${this.channelId} not found`);
         return;
       }
+
+      console.log(`[DeployMonitor] Channel found: ${channel.name}`);
 
       const embed = new EmbedBuilder()
         .setTitle('🔵 Deployment detected')
@@ -105,11 +109,14 @@ class DeploymentMonitor {
         .setTimestamp()
         .setFooter({ text: 'Prometheus Bot • Deployment Monitor' });
 
+      console.log('[DeployMonitor] Sending embed to Discord...');
       this.message = await channel.send({ embeds: [embed] });
       this.saveMessageId(this.message.id, channel.id);
       console.log(`[DeployMonitor] Deployment started for commit: ${commit}`);
+      console.log(`[DeployMonitor] Message ID saved: ${this.message.id}`);
     } catch (error) {
       console.error('[DeployMonitor] Error starting deployment:', error);
+      console.error('[DeployMonitor] Error details:', error.stack);
     }
   }
 
@@ -161,17 +168,33 @@ class DeploymentMonitor {
    */
   async deploymentSuccess() {
     try {
-      const message = await this.getMessage();
+      let message = await this.getMessage();
+      
+      // Si le message n'existe pas, le créer maintenant
       if (!message) {
-        console.warn('[DeployMonitor] No message to update');
-        return;
+        console.warn('[DeployMonitor] No message found, creating new one...');
+        await this.startDeployment('unknown');
+        message = await this.getMessage();
+        
+        if (!message) {
+          console.error('[DeployMonitor] Failed to create message for success');
+          return;
+        }
       }
 
-      const embed = EmbedBuilder.from(message.embeds[0])
-        .setTitle('🟩 Deployment Success')
+      const existingEmbed = message.embeds[0];
+      const embed = existingEmbed ? EmbedBuilder.from(existingEmbed) : new EmbedBuilder();
+      
+      embed.setTitle('🟩 Deployment Success')
         .setDescription('Le bot a été mis à jour et PM2 s\'est rechargé correctement.')
         .setColor(0x57F287)
         .setTimestamp();
+
+      // Préserver les champs existants (comme le commit hash)
+      const existingFields = existingEmbed?.fields || [];
+      if (existingFields.length > 0) {
+        embed.setFields(existingFields);
+      }
 
       await message.edit({ embeds: [embed] });
       this.message = message; // Mettre à jour la référence

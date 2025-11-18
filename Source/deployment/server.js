@@ -18,23 +18,38 @@ function startDeploymentServer(client) {
     try {
       const commit = req.body.commit || req.body.sha || 'unknown';
       
+      console.log(`[DeployServer] Received /deploy request for commit: ${commit}`);
+      
       // Répondre immédiatement pour éviter les timeouts
       res.status(200).json({ status: 'ok', message: 'Deployment started' });
 
       // Démarrer le déploiement
       await monitor.startDeployment(commit);
+      console.log('[DeployServer] Deployment started, message should be created');
 
       // Simuler les étapes avec des délais
       setTimeout(async () => {
-        await monitor.updateStage('📥 Pulling repository…', 0x3498db);
+        try {
+          await monitor.updateStage('📥 Pulling repository…', 0x3498db);
+        } catch (err) {
+          console.error('[DeployServer] Error updating stage (pull):', err.message);
+        }
       }, 1000);
 
       setTimeout(async () => {
-        await monitor.updateStage('⚙️ Installation des dépendances…', 0xFAA61A);
+        try {
+          await monitor.updateStage('⚙️ Installation des dépendances…', 0xFAA61A);
+        } catch (err) {
+          console.error('[DeployServer] Error updating stage (build):', err.message);
+        }
       }, 2000);
 
       setTimeout(async () => {
-        await monitor.updateStage('🔄 Reload de PM2…', 0x9B59B6);
+        try {
+          await monitor.updateStage('🔄 Reload de PM2…', 0x9B59B6);
+        } catch (err) {
+          console.error('[DeployServer] Error updating stage (reload):', err.message);
+        }
       }, 3000);
     } catch (error) {
       console.error('[DeployServer] Error in /deploy:', error);
@@ -45,8 +60,10 @@ function startDeploymentServer(client) {
   // Endpoint pour marquer le déploiement comme réussi
   app.post('/deploy/success', async (req, res) => {
     try {
+      console.log('[DeployServer] Received /deploy/success request');
       res.status(200).json({ status: 'ok', message: 'Deployment success recorded' });
       await monitor.deploymentSuccess();
+      console.log('[DeployServer] Success notification sent');
     } catch (error) {
       console.error('[DeployServer] Error in /deploy/success:', error);
       res.status(500).json({ status: 'error', message: error.message });
