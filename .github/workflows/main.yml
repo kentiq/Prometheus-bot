@@ -21,12 +21,12 @@ jobs:
         with:
           node-version: "20"
 
-      # 3. Install dependencies (local, optional)
+      # 3. Install dependencies (local)
       - name: Install dependencies
         run: npm install
 
       ###########################################################
-      #      A) CREATE LIVE MESSAGE (POST)
+      # A) CREATE LIVE MESSAGE (POST)
       ###########################################################
       - name: Create live deploy message
         id: create_msg
@@ -38,7 +38,6 @@ jobs:
             -d "{\"content\": \"🟦 **Deploy detected on Prometheus Bot**\", \"embeds\": [{\"title\": \"🔍 Initialisation du déploiement…\"}]}" \
             "${{ secrets.DEPLOY_WEBHOOK_URL }}")
 
-          # Extract message ID + token from response
           MSG_ID=$(echo "$RESPONSE" | jq -r '.id')
           WEBHOOK_TOKEN=$(echo "$RESPONSE" | jq -r '.token')
 
@@ -46,31 +45,17 @@ jobs:
           echo "webhook_token=$WEBHOOK_TOKEN" >> $GITHUB_OUTPUT
 
       ###########################################################
-      #   Helper function to PATCH message at any step
-      ###########################################################
-      - name: Define PATCH helper
-        id: patch
-        run: |
-          patch () {
-            curl -s -X PATCH \
-              -H "Content-Type: application/json" \
-              -d "$1" \
-              "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
-          }
-          echo "PATCH helper ready"
-
-      ###########################################################
-      #   B) UPDATE MESSAGE — PULLING
+      # B) UPDATE MESSAGE — PULLING
       ###########################################################
       - name: Update message (Pulling)
         run: |
           curl -s -X PATCH \
             -H "Content-Type: application/json" \
             -d "{\"embeds\": [{\"title\": \"📥 Pulling repository…\",\"color\": 5793266}]}" \
-            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}/messages/${{ steps.create_msg.outputs.msg_id }}/?wait=true"
 
       ###########################################################
-      #   C) DEPLOY OVER SSH
+      # C) DEPLOY OVER SSH
       ###########################################################
       - name: Deploy on VPS via SSH
         uses: appleboy/ssh-action@v1.1.0
@@ -85,7 +70,7 @@ jobs:
             pm2 reload prometheus-bot
 
       ###########################################################
-      #   D) UPDATE MESSAGE — SUCCESS
+      # D) UPDATE MESSAGE — SUCCESS
       ###########################################################
       - name: Update message (Success)
         if: ${{ success() }}
@@ -93,10 +78,10 @@ jobs:
           curl -s -X PATCH \
             -H "Content-Type: application/json" \
             -d "{\"embeds\": [{\"title\": \"🟩 Deployment Success\",\"description\": \"Bot updated and PM2 reloaded successfully.\",\"color\": 5763719}]}" \
-            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}/messages/${{ steps.create_msg.outputs.msg_id }}/?wait=true"
 
       ###########################################################
-      #   E) UPDATE MESSAGE — FAILURE
+      # E) UPDATE MESSAGE — FAILURE
       ###########################################################
       - name: Update message (Error)
         if: ${{ failure() }}
@@ -104,4 +89,4 @@ jobs:
           curl -s -X PATCH \
             -H "Content-Type: application/json" \
             -d "{\"embeds\": [{\"title\": \"❌ Deployment Failed\",\"description\": \"Error occurred during GitHub Actions pipeline.\",\"color\": 15548997}]}" \
-            "https://discord.com/api/webhooks/${{ secrets.DEPLOY_WEBHOOK_URL##*/ }}/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}/messages/${{ steps.create_msg.outputs.msg_id }}/?wait=true"
