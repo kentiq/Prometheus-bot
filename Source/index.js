@@ -1,5 +1,5 @@
 // ✅ index.js — English-only public presentation with collab & warning system
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder } = require('discord.js');
 const fs = require('fs');
 const discordTranscripts = require('discord-html-transcripts');
 require('dotenv').config();
@@ -989,7 +989,7 @@ client.on('interactionCreate', async interaction => {
       let philosophy = '';
       let languagesSpoken = '';
       
-      // Extract Languages Spoken (stop before "---" or "### 🛠️ Noteworthy Projects")
+      // Extract Languages Spoken (stop before "---" or "### g🛠️ Noteworthy Projects")
       const languagesMatch = presentation.match(/###\s*🌐\s*Languages\s*Spoken\s*\n\n((?:.*\n?)*?)(?=\n\n---|\n\n###\s*🛠️|$)/s);
       if (languagesMatch) {
         // Encadrer les émojis des langues et nettoyer le contenu
@@ -1141,6 +1141,7 @@ client.on('interactionCreate', async interaction => {
       }
 
       const embeds = [];
+      const files = [];
 
       // Applications
       const applicationsPath = path.join(imagesDir, 'Applications.png');
@@ -1156,8 +1157,11 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x2f3136);
         embeds.push(spacerEmbed1);
 
+        const applicationsAttachment = new AttachmentBuilder(applicationsPath, { name: 'Applications.png' });
+        files.push(applicationsAttachment);
+
         const applicationsImageEmbed = new EmbedBuilder()
-          .setImage(`attachment://Applications.png`)
+          .setImage('attachment://Applications.png')
           .setColor(0x5865F2);
         embeds.push(applicationsImageEmbed);
 
@@ -1181,8 +1185,11 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x2f3136);
         embeds.push(spacerEmbed3);
 
+        const auxiliaryAttachment = new AttachmentBuilder(auxiliaryPath, { name: 'AuxiliarySkills.png' });
+        files.push(auxiliaryAttachment);
+
         const auxiliaryImageEmbed = new EmbedBuilder()
-          .setImage(`attachment://Auxiliary Skills.png`)
+          .setImage('attachment://AuxiliarySkills.png')
           .setColor(0x5B6EE8);
         embeds.push(auxiliaryImageEmbed);
 
@@ -1206,8 +1213,11 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x2f3136);
         embeds.push(spacerEmbed5);
 
+        const frameworksAttachment = new AttachmentBuilder(frameworksPath, { name: 'Frameworks.png' });
+        files.push(frameworksAttachment);
+
         const frameworksImageEmbed = new EmbedBuilder()
-          .setImage(`attachment://Frameworks.png`)
+          .setImage('attachment://Frameworks.png')
           .setColor(0x6077DE);
         embeds.push(frameworksImageEmbed);
 
@@ -1233,25 +1243,17 @@ client.on('interactionCreate', async interaction => {
           .setColor(0x2f3136);
         embeds.push(spacerEmbed7);
 
+        const languagesAttachment = new AttachmentBuilder(languagesPath, { name: 'Languages.png' });
+        files.push(languagesAttachment);
+
         const languagesImageEmbed = new EmbedBuilder()
-          .setImage(`attachment://Languages.png`)
+          .setImage('attachment://Languages.png')
           .setColor(0x5865F2);
         embeds.push(languagesImageEmbed);
       }
 
-      // Préparer les fichiers à attacher
-      const files = [];
-      if (fs.existsSync(applicationsPath)) {
-        files.push({ attachment: applicationsPath, name: 'Applications.png' });
-      }
-      if (fs.existsSync(auxiliaryPath)) {
-        files.push({ attachment: auxiliaryPath, name: 'Auxiliary Skills.png' });
-      }
-      if (fs.existsSync(frameworksPath)) {
-        files.push({ attachment: frameworksPath, name: 'Frameworks.png' });
-      }
-      if (fs.existsSync(languagesPath)) {
-        files.push({ attachment: languagesPath, name: 'Languages.png' });
+      if (embeds.length === 0) {
+        return interaction.editReply({ content: "⚠️ Aucune image trouvée dans le dossier images." });
       }
 
       await interaction.editReply({ embeds: embeds, files: files });
