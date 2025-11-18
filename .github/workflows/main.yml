@@ -2,7 +2,7 @@ name: Deploy Prometheus Bot
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      # 1. Checkout repository
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -21,64 +20,22 @@ jobs:
         with:
           node-version: "20"
 
-      # 3. Install deps
+      # 3. Install dependencies (CI only)
       - name: Install dependencies
         run: npm install
 
-
-      ###########################################################
-      #    A) CREATE INITIAL MESSAGE (POST + wait=true)
-      ###########################################################
-      - name: Create live deploy message
-        id: create_msg
+      #############################################################
+      #   (A) SIGNAL : Appeler ton bot pour dire "deployment start"
+      #############################################################
+      - name: Notify bot of deployment start
         run: |
-          URL="${{ secrets.DEPLOY_WEBHOOK_URL }}?wait=true"
+          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy" \
+               -H "Content-Type: application/json" \
+               -d "{\"commit\":\"${GITHUB_SHA}\"}" || true
 
-          echo "Creating initial webhook message..."
-
-          RESPONSE=$(curl -s \
-            -H "Content-Type: application/json" \
-            -X POST \
-            -d "{\"content\":\"🟦 **Deploy detected on Prometheus Bot**\",\"embeds\":[{\"title\":\"🔍 Initialisation du déploiement…\"}]}" \
-            "$URL")
-
-          echo "Webhook Response:"
-          echo "$RESPONSE"
-
-          MSG_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
-          WEBHOOK_TOKEN=$(echo "$RESPONSE" | jq -r '.token // empty')
-
-          echo "msg_id=$MSG_ID" >> $GITHUB_OUTPUT
-          echo "webhook_token=$WEBHOOK_TOKEN" >> $GITHUB_OUTPUT
-
-          if [ -z "$MSG_ID" ]; then
-            echo "ERROR: Discord did not return a message ID (missing ?wait=true?)"
-            exit 1
-          fi
-
-
-      ###########################################################
-      #   Helper (PATCH) — we redefine a function for convenience
-      ###########################################################
-      - name: Define PATCH helper
-        run: |
-          echo "PATCH helper defined"
-
-
-      ###########################################################
-      #   B) UPDATE MESSAGE — PULLING
-      ###########################################################
-      - name: Update message (Pulling)
-        run: |
-          curl -s -X PATCH \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"📥 Pulling repository…\",\"color\":5793266}]}" \
-            "https://discord.com/api/webhooks/1440136805461786645/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
-
-
-      ###########################################################
-      #   C) DEPLOY VIA SSH
-      ###########################################################
+      #############################################################
+      #   (B) Déploiement sur le VPS
+      #############################################################
       - name: Deploy on VPS via SSH
         uses: appleboy/ssh-action@v1.1.0
         with:
@@ -91,26 +48,22 @@ jobs:
             npm install --omit=dev
             pm2 reload prometheus-bot
 
-
-      ###########################################################
-      #   D) UPDATE MESSAGE — SUCCESS
-      ###########################################################
-      - name: Update message (Success)
+      #############################################################
+      #   (C) SIGNAL : SUCCESS
+      #############################################################
+      - name: Notify SUCCESS
         if: ${{ success() }}
         run: |
-          curl -s -X PATCH \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"🟩 Deployment Success\",\"description\":\"Bot updated and PM2 reloaded successfully.\",\"color\":5763719}]}" \
-            "https://discord.com/api/webhooks/1440136805461786645/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/success" \
+               -H "Content-Type: application/json" \
+               -d "{}" || true
 
-
-      ###########################################################
-      #   E) UPDATE MESSAGE — FAILURE
-      ###########################################################
-      - name: Update message (Error)
+      #############################################################
+      #   (D) SIGNAL : FAILURE
+      #############################################################
+      - name: Notify FAILURE
         if: ${{ failure() }}
         run: |
-          curl -s -X PATCH \
-            -H "Content-Type: application/json" \
-            -d "{\"embeds\":[{\"title\":\"❌ Deployment Failed\",\"description\":\"Error occurred during GitHub Actions pipeline.\",\"color\":15548997}]}" \
-            "https://discord.com/api/webhooks/1440136805461786645/${{ steps.create_msg.outputs.webhook_token }}/messages/${{ steps.create_msg.outputs.msg_id }}"
+          curl -X POST "http://${{ secrets.VPS_HOST }}:3030/deploy/fail" \
+               -H "Content-Type: application/json" \
+               -d "{\"commit\":\"${GITHUB_SHA}\"}" || true
