@@ -272,6 +272,9 @@ async function updateWelcomeEmbed(commsStatus) {
 }
 
 client.once('ready', async () => {
+  // Démarrer le serveur de monitoring de déploiement
+  const startDeploymentServer = require(path.join(__dirname, 'deployment', 'server'));
+  startDeploymentServer(client);
   const botName = config.bot?.name || 'PROMETHEUS';
   console.log(`[${botName}] Bot active and ready to transmit digital artifacts.`);
   console.log(`[${botName}] Connected as: ${client.user.tag}`);

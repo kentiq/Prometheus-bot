@@ -10,6 +10,7 @@ GUILD_ID=your_discord_guild_id_here
 
 # Deployment Monitoring (Optional)
 DEPLOY_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url_here
+MONITOR_CHANNEL=your_monitor_channel_id_here
 ```
 
 ## Comment obtenir ces valeurs
@@ -32,6 +33,12 @@ DEPLOY_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url_here
 2. Faites un clic droit sur votre serveur Discord
 3. Cliquez sur "Copier l'ID"
 4. Collez-le dans votre fichier `.env` comme GUILD_ID
+
+### MONITOR_CHANNEL (Optionnel)
+1. Activez le mode développeur dans Discord (Paramètres > Avancé > Mode développeur)
+2. Faites un clic droit sur le canal où vous voulez recevoir les notifications de déploiement
+3. Cliquez sur "Copier l'ID"
+4. Collez-le dans votre fichier `.env` comme MONITOR_CHANNEL
 
 ## Important
 
