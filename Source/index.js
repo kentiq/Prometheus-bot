@@ -1,5 +1,5 @@
 // ✅ index.js — English-only public presentation with collab & warning system
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits, WebhookClient, AttachmentBuilder, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
 const fs = require('fs');
 const discordTranscripts = require('discord-html-transcripts');
 require('dotenv').config();
@@ -1937,7 +1937,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'animation') {
         const embed = new EmbedBuilder()
           .setTitle('〚🎬〛 Animation & Motion Dynamics')
@@ -1953,7 +1954,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'vfx') {
         const embed = new EmbedBuilder()
           .setTitle('〚✨〛 Visual Effects (VFX)')
@@ -1969,7 +1971,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'systems') {
         const embed = new EmbedBuilder()
           .setTitle('〚⚙️〛 Systems & Architecture')
@@ -1985,7 +1988,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'frontend') {
         const embed = new EmbedBuilder()
           .setTitle('〚🖥️〛 Front-End Roblox Engineering')
@@ -2001,7 +2005,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'backend') {
         const embed = new EmbedBuilder()
           .setTitle('〚🗄️〛 Back-End Roblox Engineering')
@@ -2022,7 +2027,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'frameworks') {
         const embed = new EmbedBuilder()
           .setTitle('〚📚〛 Frameworks & Technical Ecosystem')
@@ -2053,7 +2059,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === '3d_art') {
         const embed = new EmbedBuilder()
           .setTitle('〚🧱〛 3D Art & Asset Production')
@@ -2069,7 +2076,8 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       } else if (selectedValue === 'leadership') {
         const embed = new EmbedBuilder()
           .setTitle('〚🧭〛 Technical Leadership & Project Engineering')
@@ -2090,17 +2098,19 @@ client.on('interactionCreate', async interaction => {
           .setFooter({ text: 'Kentiq Universe • Skills' })
           .setTimestamp();
 
-        await interaction.update({ embeds: [embed], components: [], ephemeral: true });
+        await interaction.update({ components: [] });
+        await interaction.followUp({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
     } catch (error) {
       console.error('[ERROR] Error in skill select menu:', error);
-      const errorReply = { content: '❌ An error occurred while processing your selection.', ephemeral: true };
+      const errorReply = { content: '❌ An error occurred while processing your selection.', flags: MessageFlags.Ephemeral };
       if (interaction.deferred || interaction.replied) {
-        await interaction.editReply(errorReply);
-      } else {
-        await interaction.update({ content: errorReply.content, components: [], ephemeral: true }).catch(() => {
-          interaction.reply(errorReply);
+        await interaction.followUp(errorReply).catch(() => {
+          interaction.update({ components: [] }).catch(() => {});
         });
+      } else {
+        await interaction.update({ components: [] }).catch(() => {});
+        await interaction.followUp(errorReply).catch(() => {});
       }
     }
   }
