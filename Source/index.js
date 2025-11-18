@@ -989,24 +989,32 @@ client.on('interactionCreate', async interaction => {
       let philosophy = '';
       let languagesSpoken = '';
       
-      // Extract Philosophy (after "### 💭 Philosophy" or "### Philosophy")
-      const philosophyMatch = presentation.match(/###\s*💭\s*Philosophy\s*\n\n((?:>.*\n?)*?)(?=\n\n---|\n\n###|$)/s);
-      if (philosophyMatch) {
-        philosophy = philosophyMatch[1].trim();
-      }
-      
-      // Extract Languages Spoken (after "### 🌐 Languages Spoken" or "### Languages Spoken")
-      const languagesMatch = presentation.match(/###\s*🌐\s*Languages\s*Spoken\s*\n\n((?:.*\n?)*?)(?=\n\n---|\n\n###|$)/s);
+      // Extract Languages Spoken (stop before "---" or "### 🛠️ Noteworthy Projects")
+      const languagesMatch = presentation.match(/###\s*🌐\s*Languages\s*Spoken\s*\n\n((?:.*\n?)*?)(?=\n\n---|\n\n###\s*🛠️|$)/s);
       if (languagesMatch) {
-        // Encadrer les émojis des langues
+        // Encadrer les émojis des langues et nettoyer le contenu
         languagesSpoken = languagesMatch[1]
           .trim()
           .split('\n')
+          .filter(line => !line.trim().startsWith('###')) // Retirer les lignes avec ###
           .map(line => {
             // Trouver l'émojie au début de la ligne et l'encadrer
             return line.replace(/^(🇫🇷|🇩🇿|🇬🇧|🇮🇹|🇪🇸|🇩🇪|🇯🇵|🇨🇳|🇰🇷|🇷🇺|🇵🇹|🇳🇱|🇸🇪|🇳🇴|🇩🇰|🇫🇮|🇵🇱|🇨🇿|🇭🇺|🇷🇴|🇬🇷|🇹🇷|🇸🇦|🇦🇪|🇮🇱|🇿🇦|🇧🇷|🇲🇽|🇦🇷|🇨🇱|🇨🇴|🇵🇪|🇻🇪|🇨🇦|🇦🇺|🇳🇿|🇮🇳|🇵🇰|🇧🇩|🇱🇰|🇹🇭|🇻🇳|🇮🇩|🇵🇭|🇲🇾|🇸🇬|🇭🇰|🇹🇼)/, '〚$1〛');
           })
+          .filter(line => line.trim().length > 0) // Retirer les lignes vides
           .join('\n');
+      }
+      
+      // Extract Philosophy (stop at end of document or before "---")
+      const philosophyMatch = presentation.match(/###\s*💭\s*Philosophy\s*\n\n((?:>.*\n?)*?)(?=\n\n---|$)/s);
+      if (philosophyMatch) {
+        // Nettoyer le contenu pour retirer les ### parasites
+        philosophy = philosophyMatch[1]
+          .trim()
+          .split('\n')
+          .filter(line => !line.trim().startsWith('###')) // Retirer les lignes avec ###
+          .join('\n')
+          .trim();
       }
 
       // Build multi-embed structure with separators
