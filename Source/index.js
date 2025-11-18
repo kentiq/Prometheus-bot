@@ -89,6 +89,11 @@ const channels = loadJSONFile('channels.json');
 const clients = loadJSONFile('clients.json');
 const identities = loadJSONFile('identities.json');
 
+// Rôles & canaux système
+const MEMBER_ROLE_ID     = '1440194456476450886';
+const UNVERIFIED_ROLE_ID = '1440194557995122748';
+const ACCESS_LOG_CHANNEL_ID = '1440200183655698432';
+
 const client = new Client({ 
   intents: [
     GatewayIntentBits.Guilds,
@@ -316,6 +321,21 @@ client.on('guildMemberAdd', async (member) => {
     // Ignorer les bots
     if (member.user.bot) return;
     
+    // Attribuer automatiquement le rôle "unverified" à l'arrivée
+    try {
+      const guild = member.guild;
+      
+      const unverifiedRole =
+        guild.roles.cache.get(UNVERIFIED_ROLE_ID) ||
+        await guild.roles.fetch(UNVERIFIED_ROLE_ID).catch(() => null);
+      
+      if (unverifiedRole && !member.roles.cache.has(unverifiedRole.id)) {
+        await member.roles.add(unverifiedRole);
+      }
+    } catch (roleError) {
+      console.error('[ERROR] Failed to assign unverified role on join:', roleError);
+    }
+    
     // Attendre un peu pour éviter les problèmes de cache
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -366,8 +386,6 @@ client.on('guildMemberAdd', async (member) => {
   }
 });
 
-// TEMPORARY: Test system to verify custom emoji detection - REMOVE ONCE CONFIRMED
-// TODO: Replace with role assignment system when custom emoji system is confirmed
 client.on('messageReactionAdd', async (reaction, user) => {
   try {
     // Ignore bot reactions
@@ -403,28 +421,67 @@ client.on('messageReactionAdd', async (reaction, user) => {
     const welcomeMessageId = config.webhooks?.welcome?.messageId;
     if (!welcomeMessageId || reaction.message.id !== welcomeMessageId) return;
     
-    // Send confirmation message to test channel
-    const testChannelId = '1358500023674998885';
-    const testChannel = await client.channels.fetch(testChannelId);
+    const guild = reaction.message.guild;
+    if (!guild) return;
     
-    if (testChannel) {
-      await testChannel.send(`✅ **Test Confirmation**: ${user.tag} (${user.id}) clicked on the :Check: reaction on the welcome message.`);
+    // Récupérer le membre
+    const member = await guild.members.fetch(user.id).catch(() => null);
+    if (!member) return;
+    
+    let addedMemberRole = false;
+    let removedUnverifiedRole = false;
+    let errorDetails = null;
+    
+    try {
+      // Rôle membre
+      const memberRole =
+        guild.roles.cache.get(MEMBER_ROLE_ID) ||
+        await guild.roles.fetch(MEMBER_ROLE_ID).catch(() => null);
+      
+      if (memberRole && !member.roles.cache.has(memberRole.id)) {
+        await member.roles.add(memberRole);
+        addedMemberRole = true;
+      }
+      
+      // Rôle unverified
+      const unverifiedRole =
+        guild.roles.cache.get(UNVERIFIED_ROLE_ID) ||
+        await guild.roles.fetch(UNVERIFIED_ROLE_ID).catch(() => null);
+      
+      if (unverifiedRole && member.roles.cache.has(unverifiedRole.id)) {
+        await member.roles.remove(unverifiedRole);
+        removedUnverifiedRole = true;
+      }
+    } catch (roleError) {
+      errorDetails = roleError;
+      console.error('[ERROR] Failed to update roles on welcome reaction:', roleError);
+    }
+    
+    // Log dans le canal d’accès
+    try {
+      const logChannel = await client.channels.fetch(ACCESS_LOG_CHANNEL_ID).catch(() => null);
+      
+      if (logChannel && logChannel.isTextBased && logChannel.isTextBased()) {
+        const lines = [
+          `✅ **Access granted via welcome reaction**`,
+          `• User  : ${user.tag} (${user.id})`,
+          `• Member: ${addedMemberRole ? 'role added' : 'already had role or missing role'}`,
+          `• Unverified: ${removedUnverifiedRole ? 'role removed' : 'no unverified role to remove'}`
+        ];
+        
+        if (errorDetails) {
+          lines.push(`• Error: \`${errorDetails.message || 'Unknown error'}\``);
+        }
+        
+        await logChannel.send(lines.join('\n'));
+      }
+    } catch (logError) {
+      console.error('[ERROR] Failed to log access event:', logError);
     }
   } catch (error) {
     console.error('[ERROR] Error in reaction test handler:', error);
   }
 });
-
-// TODO: Implement role assignment system when user reacts with :Check: to welcome message
-// When a user reacts with <a:Check:926902236691460126> to the welcome message, assign them a role to grant server access
-// Replace the temporary test system above with:
-// client.on('messageReactionAdd', async (reaction, user) => {
-//   // Check if reaction emoji ID matches '926902236691460126' (Check emoji)
-//   // Check if message ID matches config.webhooks.welcome.messageId
-//   // Check if user is not a bot
-//   // Assign role to user (role ID to be configured in config.json)
-//   // Example: await reaction.message.guild.members.cache.get(user.id).roles.add(roleId);
-// });
 
 // Gestion globale des erreurs non capturées (avec sanitization)
 process.on('unhandledRejection', (reason, promise) => {
@@ -1611,8 +1668,6 @@ client.on('interactionCreate', async interaction => {
       }
 
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-      const MEMBER_ROLE_ID = '1440194456476450886';
 
       const role =
         interaction.guild.roles.cache.get(MEMBER_ROLE_ID) ||
