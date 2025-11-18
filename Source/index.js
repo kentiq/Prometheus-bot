@@ -439,6 +439,8 @@ process.on('uncaughtException', error => {
 });
 
 client.on('interactionCreate', async interaction => {
+  console.log('[INTERACTION] Received interaction:', interaction.type, interaction.isStringSelectMenu() ? `selectMenu:${interaction.customId}` : interaction.commandName || interaction.customId || 'unknown');
+  
   try {
     // Rate limiting (sauf pour les admins)
     if (interaction.isChatInputCommand() || interaction.isButton()) {
