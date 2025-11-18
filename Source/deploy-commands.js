@@ -247,7 +247,12 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('finish')
-    .setDescription('Display the project completion slogan.')
+  .setDescription('Display the project completion slogan.'),
+
+  new SlashCommandBuilder()
+  .setName('member')
+  .setDescription('Attribue le rôle membre à tous les membres du serveur.')
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ].map(command => command.toJSON());
 
 // Vérification des variables d'environnement requises

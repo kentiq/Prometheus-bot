@@ -1598,6 +1598,82 @@ client.on('interactionCreate', async interaction => {
     }
   }
 
+  // --- /member ---
+  if (interaction.commandName === 'member') {
+    try {
+      const isAdmin = interaction.member?.permissions?.has(PermissionFlagsBits.Administrator);
+
+      if (!isAdmin) {
+        return interaction.reply({
+          content: '❌ You must be an administrator to use this command.',
+          flags: InteractionResponseFlags.Ephemeral
+        });
+      }
+
+      await interaction.deferReply({ flags: InteractionResponseFlags.Ephemeral });
+
+      const MEMBER_ROLE_ID = '1440194456476450886';
+
+      const role =
+        interaction.guild.roles.cache.get(MEMBER_ROLE_ID) ||
+        await interaction.guild.roles.fetch(MEMBER_ROLE_ID).catch(() => null);
+
+      if (!role) {
+        return interaction.editReply({
+          content: `❌ Unable to find the member role with ID \`${MEMBER_ROLE_ID}\`.`
+        });
+      }
+
+      // Charger tous les membres dans le cache
+      await interaction.guild.members.fetch();
+
+      let updatedCount = 0;
+      let skippedCount = 0;
+      let failedCount = 0;
+
+      for (const member of interaction.guild.members.cache.values()) {
+        // Ignorer les bots
+        if (member.user.bot) {
+          continue;
+        }
+
+        if (member.roles.cache.has(role.id)) {
+          skippedCount++;
+          continue;
+        }
+
+        try {
+          await member.roles.add(role);
+          updatedCount++;
+        } catch (error) {
+          failedCount++;
+          console.error(`[ERROR] Failed to add member role to ${member.user.tag} (${member.id}):`, error);
+        }
+      }
+
+      await interaction.editReply({
+        content:
+          `✅ Member role \`${role.name}\` has been applied.\n` +
+          `• Updated members: **${updatedCount}**\n` +
+          `• Already had the role: **${skippedCount}**\n` +
+          `• Failed: **${failedCount}**`
+      });
+    } catch (error) {
+      console.error('[ERROR] Error in /member:', error);
+
+      const errorReply = {
+        content: '❌ An error occurred while assigning the member role.',
+        flags: InteractionResponseFlags.Ephemeral
+      };
+
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(errorReply);
+      } else {
+        await interaction.reply(errorReply);
+      }
+    }
+  }
+
   // --- /list-assets ---
   if (interaction.commandName === 'list-assets') {
     try {
