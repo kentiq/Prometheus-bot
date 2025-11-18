@@ -170,7 +170,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Affiche la liste de toutes les commandes disponibles.'),
+    .setDescription('Display the list of all available commands.'),
 
   new SlashCommandBuilder()
     .setName('stats')

@@ -1124,14 +1124,15 @@ client.on('interactionCreate', async interaction => {
   // --- /help ---
   if (interaction.commandName === 'help') {
     const embed = new EmbedBuilder()
-      .setTitle('📚 Prometheus — Guide des commandes')
-      .setDescription('Voici toutes les commandes disponibles :')
+      .setTitle('📚 Prometheus — Command Guide')
+      .setDescription('Here are all available commands to navigate the Prometheus ecosystem:')
       .addFields(
-        { name: '📦 Archives', value: '`/present` — Présente un asset\n`/work` — Affiche une collaboration\n`/client` — Présente un client', inline: false },
-        { name: '🔍 Recherche', value: '`/list-assets` — Liste tous les assets\n`/list-clients` — Liste tous les clients\n`/list-collabs` — Liste les collaborations\n`/search` — Recherche dans les archives', inline: false },
-        { name: 'ℹ️ Informations', value: '`/identity` — Identité de Prometheus\n`/channel` — Présente un canal\n`/whois` — Carte de présentation\n`/ping` — Latence du bot\n`/stats` — Statistiques', inline: false },
-        { name: '🎫 Tickets', value: '`/setup-tickets` — Configure le système de tickets', inline: false },
-        { name: '⚙️ Administration', value: '`/pricing` — Informations sur les services\n`/com` — Statut des commissions\n`/reload` — Recharge les données\n`/backup` — Crée une sauvegarde', inline: false }
+        { name: '📦 Archives', value: '`/present` — Present an asset from the archives\n`/work` — Display a collaboration with a team\n`/client` — Present a client and their work', inline: false },
+        { name: '🔍 Search & List', value: '`/list-assets` — List all available assets\n`/list-clients` — List all registered clients\n`/list-collabs` — List all collaborations\n`/search` — Search through archives (assets, clients, collaborations)', inline: false },
+        { name: 'ℹ️ Information', value: '`/identity` — Display Prometheus identity and purpose\n`/channel` — Present an ecosystem channel\n`/whois` — Display a person\'s profile card\n`/ping` — Check bot latency\n`/stats` — Display bot and server statistics\n`/help` — Display this command list', inline: false },
+        { name: '📜 Rules & Information', value: '`/rules` — Display server rules\n`/payment` — Payment methods and billing information', inline: false },
+        { name: '🎫 Tickets', value: '`/setup-tickets` — Configure the ticket system and send the control panel', inline: false },
+        { name: '⚙️ Administration', value: '`/pricing` — Display service and pricing information\n`/com` — Set commission status (Open/Closed)\n`/setup-welcome` — Configure the dynamic welcome message\n`/reload` — Reload JSON files without restarting (Admin only)\n`/backup` — Create a backup of all JSON files (Admin only)\n`/deploytest` — Test the deployment monitoring webhook (Admin only)', inline: false }
       )
       .setColor(0x00bcd4)
       .setFooter({ text: 'Prometheus • Digital artifact archivist' })
