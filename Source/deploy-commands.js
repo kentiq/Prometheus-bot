@@ -239,7 +239,15 @@ const commands = [
   new SlashCommandBuilder()
     .setName('deploytest')
     .setDescription('Vérifie le webhook de monitoring du déploiement.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('skill')
+    .setDescription('Browse available skills and expertise.'),
+
+  new SlashCommandBuilder()
+    .setName('finish')
+    .setDescription('Display the project completion slogan.')
 ].map(command => command.toJSON());
 
 // Vérification des variables d'environnement requises
