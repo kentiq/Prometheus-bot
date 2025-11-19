@@ -32,5 +32,5 @@ npm audit fix
 
 ---
 
-**Prochaine vérification recommandée :** Dans 1 mois
+**Prochaine vérification recommandée :** Dans 1 moist
 
